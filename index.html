@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Apex Endurance Coach | Elite Personalized Training Dashboard</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts for premium UI design -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #030712 !important;
+      color: #f1f5f9 !important;
+    }
+    
+    /* Fallback CSS styles if CDN is delayed or in sandbox */
+    .bg-slate-900 { background-color: #0f172a !important; }
+    .bg-slate-950 { background-color: #020617 !important; }
+    .border-slate-800 { border-color: #1e293b !important; }
+    .text-indigo-400 { color: #818cf8 !important; }
+    .text-emerald-400 { color: #34d399 !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .grid { display: grid; }
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+    
+    /* Custom scrollbar styling */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #090d16;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border: 1px solid #090d16;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    
+    /* Select element dark background formatting */
+    #phase-dropdown option {
+      background-color: #0f172a !important;
+      color: #f1f5f9 !important;
+    }
+    
+    /* Smooth modal animation transitions */
+    #detail-modal, #briefing-modal {
+      transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #detail-modal .modal-content-card, #briefing-modal .modal-content-card {
+      transition: transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      outline: none !important;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95);
+    }
+    
+    /* Accent borders highlighting for the current active week */
+    .current-week-highlight {
+      border: 2px solid rgba(99, 102, 241, 0.7) !important;
+      box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+      background: linear-gradient(180deg, #0a0f1d 0%, #050811 100%) !important;
+    }
+    
+    /* Highlighted card for active system Today */
+    .today-highlight {
+      border: 2px solid rgba(245, 158, 11, 0.9) !important;
+      box-shadow: 0 4px 22px -4px rgba(245, 158, 11, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+      background: rgba(245, 158, 11, 0.06) !important;
+    }
+    
+    .no-select {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    :root {
+      color-scheme: dark;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    html {
+      height: 100%;
+      background: #030712;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      min-height: 100%;
+      min-height: 100dvh;
+      overscroll-behavior-x: none;
+    }
+
+    button, select, [role="button"] {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid #818cf8 !important;
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .safe-header {
+      padding-top: max(1rem, var(--safe-top));
+      padding-right: max(1rem, var(--safe-right));
+      padding-left: max(1rem, var(--safe-left));
+    }
+
+    .safe-sidebar {
+      padding-top: max(1.25rem, var(--safe-top));
+      padding-bottom: max(1.25rem, var(--safe-bottom));
+      padding-left: max(1.25rem, var(--safe-left));
+    }
+
+    .safe-scroll-content {
+      padding-right: max(1rem, var(--safe-right));
+      padding-bottom: max(6rem, calc(6rem + var(--safe-bottom)));
+      padding-left: max(1rem, var(--safe-left));
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+
+    .modal-content-card {
+      max-height: min(85vh, calc(100dvh - var(--safe-top) - var(--safe-bottom) - 2rem));
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .workout-card {
+      min-width: 0;
+      min-height: 7.25rem;
+      text-align: left;
+      appearance: none;
+    }
+
+    .workout-card:active {
+      transform: scale(0.985);
+    }
+
+    @media (max-width: 639px) {
+      .safe-header { gap: 0.75rem; }
+      .modal-content-card { border-radius: 1.25rem; padding: 1rem; }
+      .workout-card { min-height: 6.75rem; }
+    }
+
+    @media (min-width: 1024px) {
+      #sidebar-trigger-btn { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#030712] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white">
+
+  <div class="app-shell flex min-h-screen lg:h-[100dvh] w-full overflow-hidden relative bg-[#030712]">
+
+    <!-- Mobile Sidebar Overlay Backing -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-30 lg:hidden opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+    <!-- Collapsible Sidebar -->
+    <aside id="sidebar" class="safe-sidebar fixed lg:relative top-0 left-0 h-full z-40 w-[min(20rem,88vw)] lg:w-80 bg-slate-900/95 border-r border-slate-800/60 p-5 flex flex-col justify-between shrink-0 transition-all duration-300 ease-in-out transform -translate-x-full lg:translate-x-0 overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#0b0f19] via-[#090d16] to-[#030712]">
+      
+      <div class="space-y-6">
+        <!-- Brand Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800/50">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-rose-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div>
+              <h1 class="font-extrabold text-sm leading-none tracking-wider text-white">PROJECT APEX</h1>
+              <span class="text-[9px] text-indigo-400 font-bold tracking-widest mt-1 block uppercase">Elite Running Planner</span>
+            </div>
+          </div>
+          <!-- Close Sidebar button for mobile view -->
+          <button id="sidebar-close-btn" class="lg:hidden p-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500" title="Hide Profile Panel">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Dynamic Profile Baseline Metrics Card -->
+        <div class="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 shadow-inner">
+          <div class="flex items-center space-x-3 mb-3">
+            <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-extrabold text-indigo-400 text-sm">
+              HM
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-slate-100">Athlete Baseline Specs</h3>
+              <p class="text-[9px] text-slate-400 font-semibold">MAX HR: 201 bpm | LTHR: 190 bpm | RHR: 64 bpm | Weight: 55 kg | HRR: 137 bpm</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[10px] border-t border-slate-800/50 pt-2.5">
+            <div>
+              <span class="text-slate-500 block font-medium uppercase tracking-wider text-[8px]">Historical Baselines</span>
+              <span class="font-extrabold text-indigo-300 block mt-0.5">15K: 1:29:57 <span class="text-slate-500 font-normal block">(@ 5:57/km) | 10K: 59:04</span></span>
+            </div>
+            <div>
+              <span class="text-slate-500 block font-medium uppercase tracking-wider text-[8px]">Primary HM Target</span>
+              <span class="font-extrabold text-amber-500 block mt-0.5">Sub-1:56:00<span class="text-slate-500 font-normal block">(@ 5:28/km, June 6)</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Reports Panel -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-[9px] font-bold text-slate-400 tracking-widest uppercase flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              COACH REPORTS
+            </h4>
+            <span class="text-[8px] px-2 py-0.5 bg-indigo-500/10 rounded text-indigo-400 font-bold border border-indigo-500/20">DIAGNOSTICS</span>
+          </div>
+          <div class="space-y-2 text-[10px]">
+            <button onclick="openBriefing(1)" class="w-full text-left group p-3 rounded-xl bg-slate-950/40 hover:bg-slate-950/90 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex items-center justify-between shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+              <span class="flex items-center text-slate-300 group-hover:text-indigo-300 font-semibold transition-colors">
+                <svg class="w-3.5 h-3.5 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                1. Fitness Baseline &amp; %HRR Zones
+              </span>
+              <svg class="w-3 h-3 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+
+            <button onclick="openBriefing(2)" class="w-full text-left group p-3 rounded-xl bg-slate-950/40 hover:bg-slate-950/90 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex items-center justify-between shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+              <span class="flex items-center text-slate-300 group-hover:text-indigo-300 font-semibold transition-colors">
+                <svg class="w-3.5 h-3.5 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                2. Dual-Race Periodization Plan
+              </span>
+              <svg class="w-3 h-3 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+
+            <button onclick="openBriefing(3)" class="w-full text-left group p-3 rounded-xl bg-slate-950/40 hover:bg-slate-950/90 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex items-center justify-between shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+              <span class="flex items-center text-slate-300 group-hover:text-indigo-300 font-semibold transition-colors">
+                <svg class="w-3.5 h-3.5 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                3. 8K &amp; HM Pacing Strategy
+              </span>
+              <svg class="w-3 h-3 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Training Zones Index -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-[9px] font-bold text-slate-400 tracking-widest uppercase flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              TRAINING TARGETS (% HRR ZONES)
+            </h4>
+            <span class="text-[8px] px-2 py-0.5 bg-slate-800 rounded text-slate-400 font-bold border border-slate-700/50">SHIFTING</span>
+          </div>
+          
+          <div class="space-y-3">
+            <!-- Zone 2 -->
+            <div class="p-3 rounded-2xl bg-slate-950/50 border border-slate-800/80 hover:border-emerald-500/30 hover:bg-slate-900/30 transition-all duration-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="flex items-center text-xs font-bold text-emerald-400 gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
+                  Z2: Aerobic Base (60-70% HRR)
+                </span>
+                <span class="text-[10px] font-bold text-slate-300 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">146-160 bpm</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div>
+                  <span class="text-slate-500 block uppercase tracking-wider text-[8px]">Current Baseline</span>
+                  <span class="font-semibold text-slate-300">6:45 - 7:15 /km</span>
+                </div>
+                <div>
+                  <span class="text-emerald-400 block uppercase tracking-wider text-[8px]">Projected (June 2027)</span>
+                  <span class="font-extrabold text-emerald-400">6:25 - 6:50 /km</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zone 3 -->
+            <div class="p-3 rounded-2xl bg-slate-950/50 border border-slate-800/80 hover:border-blue-500/30 hover:bg-slate-900/30 transition-all duration-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="flex items-center text-xs font-bold text-blue-400 gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>
+                  Z3: Steady / Mod (70-80% HRR)
+                </span>
+                <span class="text-[10px] font-bold text-slate-300 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">160-174 bpm</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div>
+                  <span class="text-slate-500 block uppercase tracking-wider text-[8px]">Current Baseline</span>
+                  <span class="font-semibold text-slate-300">5:40 - 6:00 /km</span>
+                </div>
+                <div>
+                  <span class="text-blue-400 block uppercase tracking-wider text-[8px]">Projected (June 2027)</span>
+                  <span class="font-extrabold text-blue-400">5:25 - 5:45 /km</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zone 4 -->
+            <div class="p-3 rounded-2xl bg-slate-950/50 border border-slate-800/80 hover:border-amber-500/30 hover:bg-slate-900/30 transition-all duration-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="flex items-center text-xs font-bold text-amber-400 gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
+                  Z4: Threshold (80-90% HRR)
+                </span>
+                <span class="text-[10px] font-bold text-slate-300 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">174-187 bpm</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div>
+                  <span class="text-slate-500 block uppercase tracking-wider text-[8px]">Current Baseline</span>
+                  <span class="font-semibold text-slate-300">5:20 - 5:35 /km</span>
+                </div>
+                <div>
+                  <span class="text-amber-400 block uppercase tracking-wider text-[8px]">Projected Goal HM</span>
+                  <span class="font-extrabold text-amber-400">5:15 - 5:30 /km</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zone 5 -->
+            <div class="p-3 rounded-2xl bg-slate-950/50 border border-slate-800/80 hover:border-rose-500/30 hover:bg-slate-900/30 transition-all duration-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="flex items-center text-xs font-bold text-rose-400 gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
+                  Z5: VO2 Max (90-100% HRR)
+                </span>
+                <span class="text-[10px] font-bold text-slate-300 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">187-201 bpm</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div>
+                  <span class="text-slate-500 block uppercase tracking-wider text-[8px]">Current HIIT</span>
+                  <span class="font-semibold text-slate-300">4:35 - 5:00 /km</span>
+                </div>
+                <div>
+                  <span class="text-rose-400 block uppercase tracking-wider text-[8px]">Projected / 8K Race</span>
+                  <span class="font-extrabold text-rose-400">4:25 - 5:10 /km</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Automatic Workload Analytics panel -->
+        <div class="space-y-2 border-t border-slate-800/60 pt-4">
+          <h4 class="text-[9px] font-bold text-slate-400 tracking-widest uppercase flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Automatic Workload Analytics
+          </h4>
+          <div id="sidebar-legend-container" class="grid grid-cols-2 gap-2 text-[9px]">
+            <!-- Injected programmatically inside script -->
+          </div>
+        </div>
+
+        <!-- Overtraining Safety Guard -->
+        <div class="bg-rose-950/10 border border-rose-500/20 rounded-2xl p-4">
+          <h4 class="text-[9px] font-bold text-rose-400 flex items-center tracking-widest uppercase mb-1.5">
+            <svg class="w-3.5 h-3.5 mr-1.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            Overtraining Guard
+          </h4>
+          <p class="text-[10px] text-slate-300 leading-relaxed font-medium">
+            If resting heart rate rises by <span class="text-rose-400 font-extrabold">> 5 bpm</span> over 3 consecutive days, exchange running sessions for active rest.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer specs info -->
+      <div class="pt-4 border-t border-slate-800 mt-6 shrink-0">
+        <p class="text-[9px] text-slate-500 font-bold tracking-widest uppercase mb-1">2027 CHICAGO CAMPAIGN</p>
+        <p class="text-[9px] text-slate-400 leading-normal">31-week Mon–Sun macrocycle (Nov 2, 2026 – June 6, 2027): Shamrock Shuffle 8K (Mar 21) &amp; North Shore Classic HM (June 6).</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Workspace -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+      
+      <!-- Sticky Header & Phase Controllers -->
+      <header class="safe-header sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-4 shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm shadow-slate-950/20">
+        <div class="flex items-center justify-between w-full sm:w-auto">
+          <div class="flex items-center">
+            <!-- Sidebar Panel trigger -->
+            <button id="sidebar-trigger-btn" class="p-2.5 mr-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Toggle Side Metrics Panel">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+            <div>
+              <h2 class="text-base md:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Apex Coach Training Grid
+              </h2>
+              <p class="hidden sm:block text-[10px] text-slate-400 font-semibold">31-Week Mon–Sun Half Marathon Macrocycle (Nov 2, 2026 – June 6, 2027)</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Dropdown selectors -->
+        <div class="relative w-full sm:w-64 shrink-0 z-30">
+          <select id="phase-dropdown" onchange="filterPhase(this.value)" class="w-full bg-indigo-950 border border-indigo-500/50 text-indigo-200 text-xs font-semibold py-2.5 px-3 rounded-xl shadow-lg appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer pr-10 hover:border-indigo-400 hover:text-white transition-all">
+            <option value="current">Current Active Week</option>
+            <option value="all">View Entire 31-Week Macrocycle</option>
+            <option value="recovery">Phase 1: Post-15K Recovery (W1–W2)</option>
+            <option value="winterBase">Phase 2: Winter Aerobic Base (W3–W8)</option>
+            <option value="hmThreshold">Phase 3: HM Threshold Build (W9–W16)</option>
+            <option value="shamrockPrep">Phase 4: Speed &amp; 8K Tune-Up (W17–W21)</option>
+            <option value="hmPeak">Phase 5: HM Overdistance &amp; Peak (W22–W28)</option>
+            <option value="hmTaper">Phase 6: HM Taper &amp; Race Week (W29–W31)</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </header>
+
+      <!-- Calendar Main Container -->
+      <div class="safe-scroll-content flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-slate-950/20" id="calendar-view">
+        <div class="max-w-7xl mx-auto w-full">
+          <div class="space-y-6 pb-24" id="weeks-container">
+            <!-- Rendered by JavaScript dynamically -->
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Workout Inspector Modal Overlay -->
+  <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 opacity-0 pointer-events-none hidden">
+    <div class="modal-content-card bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[85vh] overflow-y-auto custom-scrollbar p-6 shadow-2xl relative transform scale-95 flex flex-col">
+      
+      <!-- Close panel -->
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4 shrink-0">
+        <div class="flex items-center space-x-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></span>
+          <span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">Apex Workout Inspector</span>
+        </div>
+        <button id="detail-modal-close-btn" class="text-slate-400 hover:text-slate-100 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/50 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center justify-center" aria-label="Close details">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Selection details payload wrapper -->
+      <div id="selection-details" class="space-y-4 flex-1 focus:outline-none outline-none">
+        <!-- Dynamic details elements populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Coach Analysis Briefing Modal Overlay -->
+  <div id="briefing-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 opacity-0 pointer-events-none hidden">
+    <div class="modal-content-card bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar p-6 md:p-8 shadow-2xl relative transform scale-95 flex flex-col">
+      
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-800/80 mb-5 shrink-0">
+        <div class="flex items-center space-x-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></span>
+          <span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">Apex Diagnostics Report</span>
+        </div>
+        <button id="briefing-modal-close-btn" class="text-slate-400 hover:text-slate-100 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/50 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center justify-center" aria-label="Close briefing">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="pb-4 mb-4 border-b border-slate-800/30">
+        <span id="briefing-category" class="text-[8px] bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded border border-indigo-500/20 font-bold tracking-widest uppercase"></span>
+        <h2 id="briefing-title" class="text-base md:text-lg font-extrabold text-white tracking-tight mt-2 leading-tight"></h2>
+        <p id="briefing-subtitle" class="text-[10px] text-slate-400 font-medium mt-1"></p>
+      </div>
+
+      <div id="briefing-content" class="overflow-y-auto custom-scrollbar flex-1 pr-1">
+        <!-- Dynamic briefs injected here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global Exercise Database for Strength Parser
+    const exerciseDatabase = {
+      "dumbbell goblet squats": {
+        muscles: "Gluteus Maximus, Quadriceps, Core Stabilizers",
+        benefits: "Builds deep knee flexion integrity and pelvis posture strength to prevent late-race stride collapse.",
+        cues: "Hold the dumbbell vertically at chest level. Keep your chest high and drive your knees outward as you drop down, descending below parallel.",
+        mod: "Bodyweight-only air squats focusing on eccentric control (3 seconds down)",
+        prog: "Goblet squats with an added 1.5-second isometric hold at the bottom of the movement"
+      },
+      "dumbbell squats": {
+        muscles: "Gluteus Maximus, Quadriceps, Core Stabilizers",
+        benefits: "Builds deep knee flexion integrity and pelvis posture strength.",
+        cues: "Hold dumbbell at chest level. Keep chest high and descend below parallel.",
+        mod: "Bodyweight air squats",
+        prog: "Goblet squats with 1.5-second isometric hold"
+      },
+      "goblet squats": {
+        muscles: "Gluteus Maximus, Quadriceps, Core Stabilizers",
+        benefits: "Builds knee flexion integrity and pelvic posture strength.",
+        cues: "Keep chest high and drive knees outward.",
+        mod: "Bodyweight squats",
+        prog: "Weighted squats with pauses"
+      },
+      "lunge progressions": {
+        muscles: "Gluteus Medius, Quadriceps, Hamstrings, Adductors",
+        benefits: "Addresses unilateral hip weaknesses and prevents pelvic tilting during stride cycle.",
+        cues: "Step forward keeping torso vertical. Track front knee directly over second toe.",
+        mod: "Static bodyweight split-squats",
+        prog: "Walking lunges with dumbbells"
+      },
+      "deadlifts": {
+        muscles: "Hamstrings, Gluteus Maximus, Erector Spinae",
+        benefits: "Maximizes posterior chain propulsion power for acceleration and uphill runs.",
+        cues: "Keep spine flat. Squeeze glutes hard to stand up.",
+        mod: "Light kettlebell Romanian deadlifts",
+        prog: "Eccentric deadlifts (4s down)"
+      },
+      "calf raises": {
+        muscles: "Gastrocnemius, Soleus, Tibialis Posterior",
+        benefits: "Protects against achilles tendonitis and shin splints.",
+        cues: "Elevate slowly to full toe extension, lower under control.",
+        mod: "Double-leg calf raises on flat ground",
+        prog: "Single-leg weighted calf raises"
+      },
+      "russian twists": {
+        muscles: "Obliques, Transverse Abdominis, Rectus Abdominis",
+        benefits: "Controls torso rotational stability under speed.",
+        cues: "Lean torso back 45 degrees. Squeeze core and rotate shoulders slowly side to side.",
+        mod: "Russian twists with heels flat on floor",
+        prog: "Elevated feet with light dumbbell"
+      },
+      "dead-bugs": {
+        muscles: "Transverse Abdominis, Rectus Abdominis",
+        benefits: "Teaches pelvis stability while legs move dynamically.",
+        cues: "Press lower spine into floor. Lower opposite arm and leg slowly.",
+        mod: "Knee flexion only (heel taps)",
+        prog: "Weighted dead-bugs"
+      },
+      "single-leg bodyweight squats": {
+        muscles: "Quadriceps, Gluteus Medius, Ankle Stabilizers",
+        benefits: "Improves single-leg balance and protects knee cap tracking.",
+        cues: "Stand on one leg. Lower hips down and back while maintaining alignment.",
+        mod: "Single-leg squats descending to high bench",
+        prog: "Pistol squats to full depth"
+      },
+      "dumbbell romanian deadlifts": {
+        muscles: "Hamstrings, Gluteus Maximus, Erector Spinae",
+        benefits: "Improves hamstring flexibility and tissue durability.",
+        cues: "Hinge at hips. Lower weights along thighs while keeping back flat.",
+        mod: "Bodyweight Romanian deadlifts",
+        prog: "Single-leg Romanian deadlifts"
+      },
+      "bird-dogs": {
+        muscles: "Erector Spinae, Gluteus Maximus, Core Stabilizers",
+        benefits: "Reduces lower back strain and stabilizes hip rotation.",
+        cues: "Extend opposite arm and leg simultaneously while keeping hips level.",
+        mod: "Extend leg only",
+        prog: "Isometric 5s hold at extension"
+      },
+      "side-planks": {
+        muscles: "Obliques, Quadratus Lumborum, Gluteus Medius",
+        benefits: "Protects against lateral hip drop and knee strain.",
+        cues: "Prop on elbow and foot edge. Hold straight line from head to toe.",
+        mod: "Side-plank on knees",
+        prog: "Side-plank with leg abductions"
+      },
+      "clamshells": {
+        muscles: "Gluteus Medius, Hip Abductors",
+        benefits: "Stabilizes pelvic drop during long runs.",
+        cues: "Keep heels together, open top knee without rolling hips.",
+        mod: "Bodyweight clamshells",
+        prog: "Clamshells with resistance band"
+      },
+      "forearm planks": {
+        muscles: "Rectus Abdominis, Transverse Abdominis",
+        benefits: "Builds core bracing capacity.",
+        cues: "Hold elbows under shoulders, squeeze glutes and abs.",
+        mod: "Plank on knees",
+        prog: "Plank with alternate leg liftoffs"
+      }
+    };
+
+    const targetGuidelines = {
+      easy: { hr: "146-160 bpm (60-70% HRR)", pace: "6:45 - 7:15 /km (Projected: 6:25 - 6:50 /km)", desc: "Aerobic mitochondrial & capillary development anchored around ~7:00 /km baseline." },
+      tempo: { hr: "174-187 bpm (80-90% HRR)", pace: "5:20 - 5:35 /km (Projected HM: 5:15 - 5:30 /km)", desc: "Lactate threshold clearance for Half Marathon race pace sustainability." },
+      interval: { hr: "187-201 bpm (90-100% HRR)", pace: "4:35 - 5:00 /km (Projected: 4:25 - 4:50 /km)", desc: "VO2 Max cardiac stroke volume development via Norwegian 4x4 HIIT." },
+      longRun: { hr: "146-174 bpm (60-80% HRR)", pace: "6:20 - 7:05 /km", desc: "Musculoskeletal durability & glycogen efficiency, finishing steady near Z3 (baseline ~5:45 /km)." },
+      recovery: { hr: "133-146 bpm (50-60% HRR)", pace: "7:30 - 8:00 /km", desc: "Low-impact restorative blood flow to absorb training load." }
+    };
+
+    const runningStepPlan = {
+      easy: {
+        warmup: "5 minutes progressive brisk walk + dynamic leg swings and ankle mobility.",
+        cooldown: "5 minutes slow walk + light static calf, quad, and hip flexor stretches."
+      },
+      longRun: {
+        warmup: "8 minutes easy walk/jog transition + dynamic hip openers and glute activation.",
+        cooldown: "10 minutes slow walk + thorough static stretching and electrolyte replenishment."
+      },
+      tempo: {
+        warmup: "12 minutes easy Z2 jog (~7:00 /km) + dynamic drills + 4x 100m progressive strides.",
+        cooldown: "10 minutes easy Z1/Z2 jog/walk + static lower-limb stretching."
+      },
+      interval: {
+        warmup: "15 minutes easy Z2 jog (~7:00 /km) + high-knees, butt-kicks, and 4x 100m strides.",
+        cooldown: "10 minutes slow recovery jog/walk + foam rolling calves, hamstrings, and quads."
+      },
+      race: {
+        warmup: "10 minutes easy jog + dynamic mobility drills + 3x 80m strides at goal race pace.",
+        cooldown: "15 minutes gentle walk + immediate hydration and carbohydrate-protein recovery."
+      }
+    };
+
+    const briefingData = {
+      1: {
+        category: "1. Fitness Baseline & %HRR Calibration",
+        title: "Baseline vs. Projected June 2027 Fitness & %HRR Zones",
+        subtitle: "Retaining your Nov 1 15K & July 11 10K benchmarks while projecting aerobic progression through June 6, 2027.",
+        content: `
+          <div class="space-y-4 text-xs leading-relaxed text-slate-300">
+            <p>Your training calendar is standardized on a <strong>Monday–Sunday weekly cycle starting Monday, November 2, 2026 (Week 1)</strong> through <strong>Sunday, June 6, 2027 (Week 31)</strong>. Your historical race milestones—<strong>Big 10K (59:04 @ 5:52/km)</strong> and <strong>Hot Chocolate 15K on Nov 1, 2026 (1:29:57 @ 5:57/km, avg HR 174 bpm)</strong>—serve as our verified starting fitness baseline.</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-500 text-[8px] uppercase font-bold block">15K Benchmark (Nov 1)</span>
+                <span class="text-xs font-extrabold text-indigo-400">1:29:57 (5:57/km)</span>
+              </div>
+              <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-500 text-[8px] uppercase font-bold block">10K Benchmark (Jul 11)</span>
+                <span class="text-xs font-extrabold text-indigo-400">59:04 (5:52/km)</span>
+              </div>
+              <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-500 text-[8px] uppercase font-bold block">Baseline Z2 / Z3</span>
+                <span class="text-xs font-extrabold text-emerald-400">~7:00 / ~5:45 /km</span>
+              </div>
+              <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-500 text-[8px] uppercase font-bold block">Projected Z2 / Z3</span>
+                <span class="text-xs font-extrabold text-amber-400">6:25-6:50 / 5:25-5:45</span>
+              </div>
+            </div>
+
+            <div class="bg-indigo-950/15 border border-indigo-500/20 rounded-2xl p-4">
+              <h4 class="text-indigo-400 font-bold text-xs uppercase mb-2 flex items-center">
+                <svg class="w-4 h-4 mr-1.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Heart Rate Reserve (%HRR) &amp; Pace Progression Model
+              </h4>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                Formula: <code>Target HR = 64 + (%HRR × 137)</code> with <strong>LTHR = 190 bpm</strong>. Over 31 weeks of consistent 80/20 polarized aerobic conditioning, cardiac stroke volume and mitochondrial density improve pace-at-heart-rate by ~15–20 sec/km in Z2 and ~10–15 sec/km in Z3:
+              </p>
+              
+              <div class="my-4 p-4 bg-slate-950/80 rounded-xl border border-slate-800 text-center font-mono">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[10px] text-left">
+                  <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                    <span class="text-emerald-400 font-bold block">Z2: Aerobic Base (60–70% HRR | 146–160 bpm)</span>
+                    <span class="text-slate-400 block">Current Baseline: <strong>6:45 – 7:15 /km</strong> (~7:00)</span>
+                    <span class="text-emerald-300 block">Projected (June 2027): <strong>6:25 – 6:50 /km</strong></span>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                    <span class="text-blue-400 font-bold block">Z3: Steady / Mod (70–80% HRR | 160–174 bpm)</span>
+                    <span class="text-slate-400 block">Current Baseline: <strong>5:40 – 6:00 /km</strong> (~5:45)</span>
+                    <span class="text-blue-300 block">Projected (June 2027): <strong>5:25 – 5:45 /km</strong></span>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                    <span class="text-amber-400 font-bold block">Z4: Threshold (80–90% HRR | 174–187 bpm)</span>
+                    <span class="text-slate-400 block">Current Baseline: <strong>5:20 – 5:35 /km</strong></span>
+                    <span class="text-amber-300 block">Projected Goal HM: <strong>5:15 – 5:30 /km</strong></span>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                    <span class="text-rose-400 font-bold block">Z5: VO2 Max (90–100% HRR | 187–201 bpm)</span>
+                    <span class="text-slate-400 block">Current HIIT: <strong>4:35 – 5:00 /km</strong></span>
+                    <span class="text-rose-300 block">Projected / 8K Tune-Up: <strong>4:25 – 5:10 /km</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      2: {
+        category: "2. Dual-Race Periodization Architecture",
+        title: "Shamrock Shuffle 8K & North Shore Classic HM Plan",
+        subtitle: "31-week Monday–Sunday macrocycle from Nov 2, 2026 (Week 1) to June 6, 2027 (Week 31).",
+        content: `
+          <div class="space-y-4 text-xs leading-relaxed text-slate-300">
+            <p>Your 31-week Monday–Sunday schedule integrates progressive aerobic volume, 80/20 intensity discipline, and scheduled recovery step-back weeks every 3–4 weeks to peak safely for both races.</p>
+            <div class="space-y-2.5">
+              <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl">
+                <span class="text-teal-400 font-bold text-[10px] uppercase block">Phase 1: Post-15K Recovery &amp; Transition (W1–W2 | Nov 2–15, 2026)</span>
+                <p class="text-[11px] text-slate-400">Follows your Nov 1 Hot Chocolate 15K completion (1:29:57) with passive rest, mobility, and low-impact Z1/Z2 recovery runs.</p>
+              </div>
+              <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl">
+                <span class="text-blue-400 font-bold text-[10px] uppercase block">Phase 2: Winter Aerobic Base Build (W3–W8 | Nov 16–Dec 27, 2026)</span>
+                <p class="text-[11px] text-slate-400">Consistent 4 runs/week building to 32.0 km/week in Z2 (6:45–7:15/km), paired with twice-weekly strength/core work and a Week 6 deload.</p>
+              </div>
+              <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl">
+                <span class="text-amber-400 font-bold text-[10px] uppercase block">Phase 3: HM Threshold &amp; Steady Endurance (W9–W16 | Dec 28, 2026–Feb 21, 2027)</span>
+                <p class="text-[11px] text-slate-400">Introduces Z3 steady runs (5:40–6:00/km) and Z4 threshold tempos (5:20–5:35/km); long runs build progressively from 13.5 km to 18.5 km.</p>
+              </div>
+              <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl">
+                <span class="text-rose-400 font-bold text-[10px] uppercase block">Phase 4: VO2 Max &amp; Shamrock Shuffle 8K Tune-Up (W17–W21 | Feb 22–Mar 28, 2027)</span>
+                <p class="text-[11px] text-slate-400">Norwegian 4x4 HIIT sharpens top-end speed for the <strong>Sunday, March 21, 2027 Shamrock Shuffle 8K</strong> (Week 20), followed by post-race recovery in Week 21.</p>
+              </div>
+              <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl">
+                <span class="text-indigo-400 font-bold text-[10px] uppercase block">Phase 5: HM Overdistance &amp; Specific Peak (W22–W28 | Mar 29–May 16, 2027)</span>
+                <p class="text-[11px] text-slate-400">Peak mileage (43.0–48.0 km/week) with long runs reaching 21.5 km featuring fast-finish Z3/Z4 race-simulation blocks.</p>
+              </div>
+              <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl">
+                <span class="text-emerald-400 font-bold text-[10px] uppercase block">Phase 6: HM Taper &amp; Race Week (W29–W31 | May 17–June 6, 2027)</span>
+                <p class="text-[11px] text-slate-400">3-week progressive taper reducing volume by ~40% while preserving neuromuscular sharpness for the <strong>Sunday, June 6, 2027 North Shore Classic HM</strong>.</p>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      3: {
+        category: "3. Dual-Race Pacing & Fueling Strategy",
+        title: "Shamrock Shuffle 8K & North Shore Classic HM Execution",
+        subtitle: "Tactical race-day execution aligned with your baseline-to-projected fitness progression.",
+        content: `
+          <div class="space-y-4 text-xs leading-relaxed text-slate-300">
+            <h4 class="text-white font-extrabold text-xs border-b border-slate-800 pb-1">1. Shamrock Shuffle 8K Tune-Up (Sunday, March 21, 2027 — Week 20)</h4>
+            <ul class="list-disc pl-4 space-y-1 text-slate-400">
+              <li><strong>Objective:</strong> Controlled threshold-to-VO2 max effort (~40:45 – 41:30 finish @ <strong>5:05 – 5:12 /km</strong>) to assess spring fitness without inducing deep fatigue.</li>
+              <li><strong>KM 1–2:</strong> Controlled opening at 5:12 – 5:18 /km (Z4, 174–182 bpm).</li>
+              <li><strong>KM 3–6:</strong> Settle into strong threshold rhythm at 5:05 – 5:10 /km (182–188 bpm).</li>
+              <li><strong>KM 7–8:</strong> Progressive finish at 4:52 – 5:00 /km (Z5).</li>
+            </ul>
+
+            <h4 class="text-white font-extrabold text-xs border-b border-slate-800 pb-1 pt-2">2. North Shore Classic Half Marathon (Sunday, June 6, 2027 — Week 31)</h4>
+            <ul class="list-disc pl-4 space-y-1 text-slate-400">
+              <li><strong>Primary Goal:</strong> Sub-1:56:00 (Target Avg Pace: <strong>5:25 – 5:30 /km</strong>), utilizing your projected June 2027 Zone 3/4 aerobic threshold fitness.</li>
+              <li><strong>KM 1–5:</strong> Disciplined start at 5:35 – 5:40 /km (projected upper Z3, HR 165–172 bpm).</li>
+              <li><strong>KM 6–15:</strong> Lock into goal HM cruise pace of 5:22 – 5:28 /km (lower Z4, HR 174–182 bpm). Fuel with 30g carbs (gel) at KM 7 and KM 14.</li>
+              <li><strong>KM 16–21.1:</strong> Negative-split push down to 5:15 – 5:20 /km (HR 183–190 bpm) over the final 5K.</li>
+            </ul>
+          </div>
+        `
+      }
+    };
+
+    // 31-Week Monday–Sunday Macrocycle starting Monday, November 2, 2026 (Week 1) through Sunday, June 6, 2027 (Week 31)
+    const trainingPlan = [
+      // PHASE 1: POST-15K RECOVERY & TRANSITION (WEEKS 1-2)
+      {
+        week: 1, phase: "recovery", phaseName: "Post-15K Recovery", dates: "Nov 2 - Nov 8, 2026", totalDistance: "11.0", runsCount: 3, keyWorkout: "Post-15K Recovery Protocol", focus: "Week 1 begins Monday, Nov 2 following your Nov 1 Hot Chocolate 15K benchmark (1:29:57 @ 5:57/km). Prioritize passive rest and gentle Z1/Z2 recovery.",
+        days: [
+          { day: "Mon", type: "rest", name: "Post-15K Complete Rest", dist: "N/A", pace: "N/A", details: { breakdown: "Full passive recovery following Nov 1 Hot Chocolate 15K (1:29:57). Prioritize hydration and sleep." } },
+          { day: "Tue", type: "rest", name: "Active Mobility & Walk", dist: "N/A", pace: "N/A", details: { breakdown: "20 min gentle walk and light foam rolling." } },
+          { day: "Wed", type: "easy", name: "Zone 1 Recovery Flush", dist: "3.0 km", pace: "7:30 - 8:00 /km", details: { type: "easy", breakdown: "Very easy restorative shakeout keeping HR strictly below 146 bpm.", hr: "133-146 bpm" } },
+          { day: "Thu", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, dead-bugs", sets: "2 sets x 10 reps", focus: "Gentle hip and spinal decompression." } },
+          { day: "Fri", type: "easy", name: "Zone 2 Easy Shakeout", dist: "4.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic stride check-in.", hr: "146-160 bpm" } },
+          { day: "Sat", type: "rest", name: "Rest & Tissue Repair", dist: "N/A", pace: "N/A" },
+          { day: "Sun", type: "easy", name: "Zone 2 Easy Run", dist: "4.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Conversational Zone 2 aerobic run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 2, phase: "recovery", phaseName: "Post-15K Recovery", dates: "Nov 9 - Nov 15, 2026", totalDistance: "20.5", runsCount: 4, keyWorkout: "7.5k Z2 Aerobic Long Run", focus: "Establish consistent 4 runs/week rhythm at baseline Zone 2 pace (6:45–7:15/km) with zero high-intensity strain.",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Core & Balance", dist: "N/A", pace: "N/A", details: { exercises: "bird-dogs, dead-bugs, side-planks", sets: "3 sets x 12 reps", focus: "Pelvic stability and core activation." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Smooth, relaxed cadence (~170 spm).", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "easy", name: "Zone 2 Base Run", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Fri", type: "strength", name: "Lower Body Foundations", dist: "N/A", pace: "N/A", details: { exercises: "goblet squats, calf raises, clamshells", sets: "2 sets x 12 reps", focus: "Tendon and joint re-conditioning." } },
+          { day: "Sat", type: "longRun", name: "Aerobic Base Long Run", dist: "7.5 km", pace: "6:45 - 7:15 /km", details: { type: "longRun", breakdown: "Comfortable Zone 2 long run to close recovery phase.", hr: "146-160 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Flush", dist: "4.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+
+      // PHASE 2: WINTER AEROBIC BASE BUILD (WEEKS 3-8)
+      {
+        week: 3, phase: "winterBase", phaseName: "Winter Aerobic Base", dates: "Nov 16 - Nov 22, 2026", totalDistance: "23.5", runsCount: 4, keyWorkout: "8.5k Z2 Long Run", focus: "Begin winter aerobic base block. Introduce light Z3 steady pacing (5:40–6:00/km) mid-week.",
+        days: [
+          { day: "Mon", type: "strength", name: "Lower Body Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, lunge progressions, calf raises", sets: "3 sets x 10 reps", focus: "Single-leg stability and glute strength." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "5.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Conversational ~7:00/km pace.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Z3 Steady Progression", dist: "5.5 km", pace: "5:45 - 6:10 /km", details: { type: "tempo", breakdown: "3.0 km Z2 warm-up + 2.5 km steady in Zone 3 (~5:45/km).", hr: "160-174 bpm" } },
+          { day: "Fri", type: "strength", name: "Postural Core Routine", dist: "N/A", pace: "N/A", details: { exercises: "dead-bugs, side-planks, russian twists", sets: "3 sets x 12 reps", focus: "Anti-rotation trunk control." } },
+          { day: "Sat", type: "longRun", name: "Zone 2 Base Long Run", dist: "8.5 km", pace: "6:45 - 7:15 /km", details: { type: "longRun", breakdown: "Aerobic capillary building in Zone 2.", hr: "146-160 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 4, phase: "winterBase", phaseName: "Winter Aerobic Base", dates: "Nov 23 - Nov 29, 2026", totalDistance: "25.5", runsCount: 4, keyWorkout: "10.0k Z2 Long Run", focus: "Gradual volume progression to 25.5 km; Saturday long run reaches 10.0 km.",
+        days: [
+          { day: "Mon", type: "strength", name: "Posterior Chain Weights", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell romanian deadlifts, goblet squats, calf raises", sets: "3 sets x 12 reps", focus: "Hamstring and calf durability." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "5.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady ~7:00/km aerobic effort.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Zone 3 Steady Run", dist: "6.0 km", pace: "5:40 - 6:00 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 3.5 km steady at ~5:45/km + 1.0 km cool-down.", hr: "160-174 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "bird-dogs, clamshells, forearm planks", sets: "3 sets x 12 reps", focus: "Hip abductor control." } },
+          { day: "Sat", type: "longRun", name: "Zone 2 Long Run", dist: "10.0 km", pace: "6:40 - 7:10 /km", details: { type: "longRun", breakdown: "Continuous 10K aerobic endurance run.", hr: "146-162 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 5, phase: "winterBase", phaseName: "Winter Aerobic Base", dates: "Nov 30 - Dec 6, 2026", totalDistance: "28.0", runsCount: 4, keyWorkout: "11.5k Aerobic Long Run", focus: "Building aerobic base to 28.0 km with 4.5 km Zone 3 steady block on Thursday.",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Leg Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, lunge progressions, calf raises", sets: "3 sets x 12 reps", focus: "Knee and ankle resilience." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Zone 3 Steady Tempo", dist: "6.5 km", pace: "5:40 - 5:55 /km", details: { type: "tempo", breakdown: "1.0 km Z2 + 4.5 km steady at ~5:45/km + 1.0 km cool-down.", hr: "160-174 bpm" } },
+          { day: "Fri", type: "strength", name: "Postural Core & Balance", dist: "N/A", pace: "N/A", details: { exercises: "single-leg bodyweight squats, dead-bugs, side-planks", sets: "3 sets x 12 reps", focus: "Single-leg landing control." } },
+          { day: "Sat", type: "longRun", name: "Aerobic Base Long Run", dist: "11.5 km", pace: "6:35 - 7:05 /km", details: { type: "longRun", breakdown: "Steady Z2 run with final 2 km at ~6:15/km.", hr: "146-165 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 1-2 Recovery Run", dist: "4.5 km", pace: "6:50 - 7:20 /km", details: { type: "easy", breakdown: "Light restorative run.", hr: "142-158 bpm" } }
+        ]
+      },
+      {
+        week: 6, phase: "winterBase", phaseName: "Winter Aerobic Base", dates: "Dec 7 - Dec 13, 2026", totalDistance: "21.5", runsCount: 4, keyWorkout: "Recovery Step-Back Week", focus: "Scheduled recovery week (-23% volume) to absorb initial 3-week base build and prevent fatigue accumulation.",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, forearm planks", sets: "2 sets x 12 reps", focus: "Joint decompression." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "easy", name: "Zone 2 + Strides", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "4.5 km easy Z2 + 4x 80m smooth strides.", hr: "146-160 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest & Foam Roll", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Deload Long Run", dist: "8.0 km", pace: "6:45 - 7:15 /km", details: { type: "longRun", breakdown: "Comfortable 8K aerobic run.", hr: "146-160 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 7, phase: "winterBase", phaseName: "Winter Aerobic Base", dates: "Dec 14 - Dec 20, 2026", totalDistance: "30.0", runsCount: 4, keyWorkout: "12.5k Long Run", focus: "Reaching 30.0 km/week volume. Re-introducing threshold cruise intervals on Thursday.",
+        days: [
+          { day: "Mon", type: "strength", name: "Posterior Chain Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell romanian deadlifts, goblet squats, calf raises", sets: "3 sets x 12 reps", focus: "Propulsion strength." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Z3/Z4 Cruise Intervals", dist: "7.0 km", pace: "5:25 - 5:45 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 3x 1.5 km at 5:30/km (2 min easy jog) + 1.0 km cool-down.", hr: "170-184 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "russian twists, dead-bugs, side-planks", sets: "3 sets x 15 reps", focus: "Trunk rigidity." } },
+          { day: "Sat", type: "longRun", name: "Aerobic Base Long Run", dist: "12.5 km", pace: "6:35 - 7:05 /km", details: { type: "longRun", breakdown: "Steady 12.5K aerobic long run.", hr: "146-165 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 8, phase: "winterBase", phaseName: "Winter Aerobic Base", dates: "Dec 21 - Dec 27, 2026", totalDistance: "32.0", runsCount: 4, keyWorkout: "13.5k Long Run", focus: "Closing Winter Base Phase at 32.0 km/week with a 13.5 km long run.",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Leg Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, deadlifts, calf raises", sets: "3 sets x 12 reps", focus: "Muscular endurance." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Conversational ~7:00/km pace.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Zone 3 Steady Tempo", dist: "7.5 km", pace: "5:40 - 5:55 /km", details: { type: "tempo", breakdown: "1.25 km Z2 + 5.0 km continuous steady at ~5:45/km + 1.25 km cool-down.", hr: "160-174 bpm" } },
+          { day: "Fri", type: "strength", name: "Postural Core Routine", dist: "N/A", pace: "N/A", details: { exercises: "single-leg bodyweight squats, bird-dogs, side-planks", sets: "3 sets x 12 reps", focus: "Balance and alignment." } },
+          { day: "Sat", type: "longRun", name: "Peak Base Long Run", dist: "13.5 km", pace: "6:30 - 7:00 /km", details: { type: "longRun", breakdown: "Strong 13.5K aerobic long run.", hr: "146-168 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy restorative run.", hr: "146-160 bpm" } }
+        ]
+      },
+
+      // PHASE 3: HM THRESHOLD & STEADY ENDURANCE (WEEKS 9-16)
+      {
+        week: 9, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Dec 28, 2026 - Jan 3, 2027", totalDistance: "25.0", runsCount: 4, keyWorkout: "New Year Recovery Week", focus: "Scheduled recovery week (-22% volume) transitioning into Half Marathon Threshold Build.",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, forearm planks", sets: "2 sets x 12 reps", focus: "Joint decompression." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "5.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "easy", name: "Zone 2 + Strides", dist: "5.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "5.0 km Z2 + 4x 100m strides.", hr: "146-160 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Deload Long Run", dist: "10.0 km", pace: "6:45 - 7:15 /km", details: { type: "longRun", breakdown: "Comfortable 10K aerobic run.", hr: "146-160 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 10, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Jan 4 - Jan 10, 2027", totalDistance: "34.5", runsCount: 4, keyWorkout: "14.5k Long Run", focus: "Launching HM Threshold Phase. Continuous Z4 threshold work at 5:20–5:35/km.",
+        days: [
+          { day: "Mon", type: "strength", name: "Lower Body Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, lunge progressions, calf raises", sets: "3 sets x 12 reps", focus: "Lower limb power." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "6.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Z4 Threshold Tempo", dist: "8.0 km", pace: "5:20 - 5:35 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 5.0 km Z4 threshold (5:25/km) + 1.5 km cool-down.", hr: "174-187 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "dead-bugs, side-planks, russian twists", sets: "3 sets x 15 reps", focus: "Pelvic stability." } },
+          { day: "Sat", type: "longRun", name: "Aerobic Stamina Long Run", dist: "14.5 km", pace: "6:30 - 7:00 /km", details: { type: "longRun", breakdown: "14.5K long run with final 3 km at ~5:45/km (Z3).", hr: "146-172 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic recovery.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 11, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Jan 11 - Jan 17, 2027", totalDistance: "37.0", runsCount: 4, keyWorkout: "15.5k Long Run", focus: "Progressive build to 37.0 km/week; long run extends past 15K to 15.5 km.",
+        days: [
+          { day: "Mon", type: "strength", name: "Posterior Chain Weights", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell romanian deadlifts, goblet squats, calf raises", sets: "3 sets x 12 reps", focus: "Hamstring resilience." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "7.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady ~7:00/km base volume.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Threshold Cruise Repeats", dist: "8.5 km", pace: "5:15 - 5:30 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 3x 2.0 km at 5:22/km (90s jog) + 1.0 km cool-down.", hr: "174-187 bpm" } },
+          { day: "Fri", type: "strength", name: "Postural Core & Balance", dist: "N/A", pace: "N/A", details: { exercises: "single-leg bodyweight squats, bird-dogs, side-planks", sets: "3 sets x 12 reps", focus: "Single-leg control." } },
+          { day: "Sat", type: "longRun", name: "HM Base Long Run", dist: "15.5 km", pace: "6:25 - 7:00 /km", details: { type: "longRun", breakdown: "15.5K aerobic endurance run.", hr: "146-170 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 12, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Jan 18 - Jan 24, 2027", totalDistance: "39.0", runsCount: 4, keyWorkout: "16.5k Long Run", focus: "Approaching 40 km/week volume. Thursday features a 6.0 km continuous threshold tempo.",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Weight Training", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, deadlifts, calf raises", sets: "3 sets x 12 reps", focus: "Muscular endurance." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "7.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "6K Threshold Tempo", dist: "9.0 km", pace: "5:20 - 5:35 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 6.0 km continuous at 5:25–5:30/km + 1.5 km cool-down.", hr: "174-187 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "russian twists, dead-bugs, clamshells", sets: "3 sets x 15 reps", focus: "Core stability under fatigue." } },
+          { day: "Sat", type: "longRun", name: "16.5k Fast-Finish Long Run", dist: "16.5 km", pace: "6:20 - 6:55 /km", details: { type: "longRun", breakdown: "12.5 km Z2 (~6:55/km) + final 4.0 km steady in Z3 (~5:45/km).", hr: "146-174 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 1-2 Recovery Run", dist: "6.0 km", pace: "6:50 - 7:20 /km", details: { type: "easy", breakdown: "Easy restorative run.", hr: "142-158 bpm" } }
+        ]
+      },
+      {
+        week: 13, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Jan 25 - Jan 31, 2027", totalDistance: "29.0", runsCount: 4, keyWorkout: "Mid-Winter Recovery Week", focus: "Scheduled recovery week (-26% volume) to consolidate threshold adaptations and protect against overtraining.",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, forearm planks", sets: "2 sets x 12 reps", focus: "Joint mobility." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "easy", name: "Zone 2 + Strides", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "5.5 km Z2 + 4x 100m strides.", hr: "146-160 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Deload Long Run", dist: "12.0 km", pace: "6:45 - 7:15 /km", details: { type: "longRun", breakdown: "Comfortable 12K aerobic run.", hr: "146-160 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 14, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Feb 1 - Feb 7, 2027", totalDistance: "40.5", runsCount: 4, keyWorkout: "17.5k Long Run", focus: "Crossing 40.5 km/week volume. Introducing Norwegian 4x4 VO2 max stimulus ahead of spring speed block.",
+        days: [
+          { day: "Mon", type: "strength", name: "Posterior Chain Weights", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell romanian deadlifts, goblet squats, calf raises", sets: "3 sets x 12 reps", focus: "Tendon durability." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "8.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady ~7:00/km base run.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "interval", name: "Norwegian 4x4 HIIT", dist: "9.0 km", pace: "4:35 - 5:00 /km", details: { type: "interval", breakdown: "2.0 km Z2 + 4x 4 min at Z5 (187-201 bpm) w/ 3 min active recovery + cool-down.", hr: "187-201 bpm" } },
+          { day: "Fri", type: "strength", name: "Postural Core & Balance", dist: "N/A", pace: "N/A", details: { exercises: "single-leg bodyweight squats, dead-bugs, side-planks", sets: "3 sets x 12 reps", focus: "Landing mechanics." } },
+          { day: "Sat", type: "longRun", name: "17.5k Endurance Long Run", dist: "17.5 km", pace: "6:25 - 6:55 /km", details: { type: "longRun", breakdown: "17.5K steady aerobic long run.", hr: "146-170 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 15, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Feb 8 - Feb 14, 2027", totalDistance: "42.5", runsCount: 4, keyWorkout: "18.5k Long Run", focus: "Building to 42.5 km/week with a 7.0 km HM goal-pace threshold tempo.",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Leg Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, lunge progressions, calf raises", sets: "3 sets x 12 reps", focus: "Lower body strength." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "8.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "7K HM Goal Pace Tempo", dist: "10.0 km", pace: "5:25 - 5:35 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 7.0 km continuous at goal HM pace (5:28/km) + 1.5 km cool-down.", hr: "174-185 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "russian twists, bird-dogs, side-planks", sets: "3 sets x 15 reps", focus: "Trunk posture." } },
+          { day: "Sat", type: "longRun", name: "18.5k Fast-Finish Long Run", dist: "18.5 km", pace: "6:20 - 6:55 /km", details: { type: "longRun", breakdown: "13.5 km Z2 + final 5.0 km steady at ~5:45/km (Z3).", hr: "146-174 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic recovery.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 16, phase: "hmThreshold", phaseName: "HM Threshold Build", dates: "Feb 15 - Feb 21, 2027", totalDistance: "31.5", runsCount: 4, keyWorkout: "Phase Transition Step-Back", focus: "Scheduled recovery week (-26% volume) before entering the VO2 Max & Shamrock Shuffle 8K Tune-Up block.",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, forearm planks", sets: "2 sets x 12 reps", focus: "Joint decompression." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "6.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "easy", name: "Zone 2 + Strides", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "6.0 km Z2 + 4x 100m strides.", hr: "146-160 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Deload Long Run", dist: "13.0 km", pace: "6:45 - 7:15 /km", details: { type: "longRun", breakdown: "Comfortable 13K aerobic run.", hr: "146-160 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+
+      // PHASE 4: VO2 MAX & SHAMROCK SHUFFLE 8K TUNE-UP (WEEKS 17-21)
+      {
+        week: 17, phase: "shamrockPrep", phaseName: "Speed & 8K Tune-Up", dates: "Feb 22 - Feb 28, 2027", totalDistance: "43.5", runsCount: 4, keyWorkout: "Norwegian 4x4 HIIT", focus: "Start of Speed & 8K Tune-Up Phase. High-output Norwegian 4x4 intervals on Thursday; 19.0 km long run Saturday.",
+        days: [
+          { day: "Mon", type: "strength", name: "Posterior Chain Power", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell romanian deadlifts, goblet squats, calf raises", sets: "3 sets x 12 reps", focus: "Speed resilience." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "8.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "interval", name: "Norwegian 4x4 HIIT", dist: "9.5 km", pace: "4:30 - 4:55 /km", details: { type: "interval", breakdown: "2.0 km Z2 + 4x 4 min at Z5 (187-201 bpm) w/ 3 min active recovery + cool-down.", hr: "187-201 bpm" } },
+          { day: "Fri", type: "strength", name: "Postural Core & Balance", dist: "N/A", pace: "N/A", details: { exercises: "single-leg bodyweight squats, dead-bugs, side-planks", sets: "3 sets x 12 reps", focus: "Dynamic trunk control." } },
+          { day: "Sat", type: "longRun", name: "19.0k Overdistance Run", dist: "19.0 km", pace: "6:25 - 6:55 /km", details: { type: "longRun", breakdown: "19K endurance long run.", hr: "146-170 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 18, phase: "shamrockPrep", phaseName: "Speed & 8K Tune-Up", dates: "Mar 1 - Mar 7, 2027", totalDistance: "45.0", runsCount: 4, keyWorkout: "8K Race-Pace Repeats", focus: "Specific 8K tune-up pacing (5:05–5:15/km) paired with a 20.0 km long run.",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Leg Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, deadlifts, calf raises", sets: "3 sets x 12 reps", focus: "Leg power." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "8.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady ~7:00/km base volume.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "interval", name: "5x 1.6K @ 8K Race Pace", dist: "10.0 km", pace: "5:05 - 5:15 /km", details: { type: "interval", breakdown: "1.5 km Z2 + 5x 1.6 km at 5:08/km (90s jog recovery) + cool-down.", hr: "180-192 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "russian twists, dead-bugs, side-planks", sets: "3 sets x 15 reps", focus: "Pelvic alignment." } },
+          { day: "Sat", type: "longRun", name: "20.0k Fast-Finish Long Run", dist: "20.0 km", pace: "6:20 - 6:55 /km", details: { type: "longRun", breakdown: "15.0 km Z2 + final 5.0 km steady at ~5:45/km (Z3).", hr: "146-174 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 19, phase: "shamrockPrep", phaseName: "Speed & 8K Tune-Up", dates: "Mar 8 - Mar 14, 2027", totalDistance: "32.0", runsCount: 4, keyWorkout: "Pre-8K Step-Back & Sharpener", focus: "Taper-in week (-29% volume) ahead of next Sunday's Shamrock Shuffle 8K. Sharpening intervals on Thursday.",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Mobility & Core", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, forearm planks", sets: "2 sets x 12 reps", focus: "Pre-taper mobility." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "7.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "interval", name: "4x 1K @ 8K Race Pace", dist: "7.5 km", pace: "5:00 - 5:12 /km", details: { type: "interval", breakdown: "2.0 km Z2 + 4x 1.0 km at 5:06/km (2 min active recovery) + 1.5 km cool-down.", hr: "180-190 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Taper Aerobic Long Run", dist: "12.0 km", pace: "6:40 - 7:10 /km", details: { type: "longRun", breakdown: "Controlled 12K aerobic run.", hr: "146-162 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 20, phase: "shamrockPrep", phaseName: "Speed & 8K Tune-Up", dates: "Mar 15 - Mar 21, 2027", totalDistance: "22.5", runsCount: 4, keyWorkout: "Shamrock Shuffle 8K (Mar 21)", focus: "TUNE-UP RACE WEEK! Bank of America Shamrock Shuffle 8K on Sunday, March 21, 2027.",
+        days: [
+          { day: "Mon", type: "strength", name: "Ultra-Light Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs", sets: "2 sets x 8 reps", focus: "Maintain neuromuscular snap without fatigue." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "tempo", name: "8K Race-Pace Sharpener", dist: "5.5 km", pace: "5:05 - 5:15 /km", details: { type: "tempo", breakdown: "2.0 km Z2 + 2x 1.0 km at 8K race pace (5:08/km, 2 min jog) + 1.5 km cool-down.", hr: "178-188 bpm" } },
+          { day: "Thu", type: "rest", name: "Rest & Hydration", dist: "N/A", pace: "N/A" },
+          { day: "Fri", type: "easy", name: "Pre-Race Shakeout", dist: "3.0 km", pace: "7:00 - 7:30 /km", details: { type: "easy", breakdown: "Ultra-easy 3K + 3x 80m strides.", hr: "135-150 bpm" } },
+          { day: "Sat", type: "rest", name: "Pre-Race Complete Rest", dist: "N/A", pace: "N/A", details: { breakdown: "Full rest and race-day preparation." } },
+          { day: "Sun", type: "race", name: "Shamrock Shuffle 8K RACE!", dist: "8.0 km", pace: "5:05 - 5:15 /km", details: { type: "race", breakdown: "Tune-Up Race (March 21, 2027): Target ~40:45–41:30 (5:08/km). Controlled start, strong threshold cruise, fast final 2K.", hr: "180-194 bpm" } }
+        ]
+      },
+      {
+        week: 21, phase: "shamrockPrep", phaseName: "Speed & 8K Tune-Up", dates: "Mar 22 - Mar 28, 2027", totalDistance: "28.5", runsCount: 4, keyWorkout: "Post-8K Recovery & Rebuild", focus: "Post-race recovery week bridging cleanly into the final Half Marathon Specific Peak Block.",
+        days: [
+          { day: "Mon", type: "rest", name: "Post-Race Complete Rest", dist: "N/A", pace: "N/A", details: { breakdown: "Full passive recovery following 8K tune-up race." } },
+          { day: "Tue", type: "easy", name: "Zone 1 Recovery Flush", dist: "4.5 km", pace: "7:20 - 7:50 /km", details: { type: "easy", breakdown: "Very gentle recovery flush.", hr: "135-148 bpm" } },
+          { day: "Wed", type: "strength", name: "Light Mobility & Core", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, dead-bugs", sets: "2 sets x 10 reps", focus: "Tissue restoration." } },
+          { day: "Thu", type: "easy", name: "Zone 2 Easy Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Conversational Zone 2 run.", hr: "146-160 bpm" } },
+          { day: "Fri", type: "strength", name: "Lower Body Foundations", dist: "N/A", pace: "N/A", details: { exercises: "goblet squats, calf raises, side-planks", sets: "2 sets x 12 reps", focus: "Tendon readiness." } },
+          { day: "Sat", type: "longRun", name: "Aerobic Base Long Run", dist: "12.5 km", pace: "6:35 - 7:05 /km", details: { type: "longRun", breakdown: "Smooth 12.5K aerobic run.", hr: "146-165 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational flush.", hr: "146-160 bpm" } }
+        ]
+      },
+
+      // PHASE 5: HM OVERDISTANCE & SPECIFIC PEAK (WEEKS 22-28)
+      {
+        week: 22, phase: "hmPeak", phaseName: "HM Peak & Overdistance", dates: "Mar 29 - Apr 4, 2027", totalDistance: "43.0", runsCount: 4, keyWorkout: "18.5k Fast-Finish Long Run", focus: "Launching Final HM Peak Block. Long runs feature race-specific fast finishes.",
+        days: [
+          { day: "Mon", type: "strength", name: "Posterior Chain Weights", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell romanian deadlifts, goblet squats, calf raises", sets: "3 sets x 12 reps", focus: "Late-race durability." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "8.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady ~7:00/km aerobic volume.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "8K HM Goal Pace Tempo", dist: "9.5 km", pace: "5:20 - 5:35 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 6.5 km continuous at goal HM pace (5:28/km) + 1.5 km cool-down.", hr: "174-185 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "russian twists, dead-bugs, side-planks", sets: "3 sets x 15 reps", focus: "Postural control." } },
+          { day: "Sat", type: "longRun", name: "18.5k Fast-Finish Long Run", dist: "18.5 km", pace: "6:15 - 6:50 /km", details: { type: "longRun", breakdown: "13.5 km Z2 + final 5.0 km at goal HM pace (5:25–5:35/km).", hr: "146-182 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 23, phase: "hmPeak", phaseName: "HM Peak & Overdistance", dates: "Apr 5 - Apr 11, 2027", totalDistance: "46.0", runsCount: 4, keyWorkout: "20.5k Long Run", focus: "Building to 46.0 km/week; Thursday features Norwegian 4x4 HIIT; Saturday extends to 20.5 km.",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Leg Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, lunge progressions, calf raises", sets: "3 sets x 12 reps", focus: "Muscular endurance." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "8.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "interval", name: "Norwegian 4x4 HIIT", dist: "10.0 km", pace: "4:30 - 4:55 /km", details: { type: "interval", breakdown: "2.0 km Z2 + 4x 4 min at Z5 (187-201 bpm) w/ 3 min active recovery + cool-down.", hr: "187-201 bpm" } },
+          { day: "Fri", type: "strength", name: "Postural Core & Balance", dist: "N/A", pace: "N/A", details: { exercises: "single-leg bodyweight squats, bird-dogs, side-planks", sets: "3 sets x 12 reps", focus: "Single-leg stability." } },
+          { day: "Sat", type: "longRun", name: "20.5k Endurance Long Run", dist: "20.5 km", pace: "6:20 - 6:55 /km", details: { type: "longRun", breakdown: "20.5K stamina run with fueling practice (gels at 45m & 90m).", hr: "146-172 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "7.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 24, phase: "hmPeak", phaseName: "HM Peak & Overdistance", dates: "Apr 12 - Apr 18, 2027", totalDistance: "33.5", runsCount: 4, keyWorkout: "Pre-Peak Recovery Week", focus: "Scheduled recovery week (-27% volume) to ensure fresh legs for the highest-volume peak weeks (W25–W26).",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, forearm planks", sets: "2 sets x 12 reps", focus: "Joint decompression." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "7.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "easy", name: "Zone 2 + Strides", dist: "6.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "6.5 km Z2 + 4x 100m strides.", hr: "146-160 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Deload Long Run", dist: "14.5 km", pace: "6:40 - 7:10 /km", details: { type: "longRun", breakdown: "Comfortable 14.5K aerobic run.", hr: "146-162 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 1-2 Recovery Run", dist: "5.5 km", pace: "7:00 - 7:30 /km", details: { type: "easy", breakdown: "Light restorative run.", hr: "140-155 bpm" } }
+        ]
+      },
+      {
+        week: 25, phase: "hmPeak", phaseName: "HM Peak & Overdistance", dates: "Apr 19 - Apr 25, 2027", totalDistance: "47.0", runsCount: 4, keyWorkout: "21.1k Full HM Simulation", focus: "Full 21.1 km Half Marathon distance simulation on Saturday with 8 km at goal HM pace!",
+        days: [
+          { day: "Mon", type: "strength", name: "Posterior Chain Weights", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell romanian deadlifts, goblet squats, calf raises", sets: "3 sets x 12 reps", focus: "Tendon resilience." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Aerobic Run", dist: "9.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Steady Z2 pacing.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Z3 Steady Tempo", dist: "9.9 km", pace: "5:35 - 5:50 /km", details: { type: "tempo", breakdown: "2.0 km Z2 + 6.0 km steady at ~5:40/km + 1.9 km cool-down.", hr: "160-174 bpm" } },
+          { day: "Fri", type: "strength", name: "Core & Hip Stability", dist: "N/A", pace: "N/A", details: { exercises: "dead-bugs, side-planks, clamshells", sets: "3 sets x 12 reps", focus: "Pelvic stability." } },
+          { day: "Sat", type: "longRun", name: "21.1k HM Race Simulation", dist: "21.1 km", pace: "6:10 - 6:45 /km", details: { type: "longRun", breakdown: "13.1 km Z2 (~6:45/km) + final 8.0 km at goal HM pace (5:20–5:30/km). Full race-day fueling rehearsal.", hr: "146-184 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "7.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 26, phase: "hmPeak", phaseName: "HM Peak & Overdistance", dates: "Apr 26 - May 2, 2027", totalDistance: "48.0", runsCount: 4, keyWorkout: "Peak 48.0k & 21.5k Long Run", focus: "Absolute peak volume week (48.0 km) and maximum overdistance long run (21.5 km).",
+        days: [
+          { day: "Mon", type: "strength", name: "Runner's Leg Strength", dist: "N/A", pace: "N/A", details: { exercises: "dumbbell goblet squats, deadlifts, calf raises", sets: "3 sets x 12 reps", focus: "Muscular endurance." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "9.0 km", pace: "6:35 - 7:05 /km", details: { type: "easy", breakdown: "Steady aerobic base volume.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "interval", name: "Norwegian 4x4 Peak HIIT", dist: "10.5 km", pace: "4:25 - 4:50 /km", details: { type: "interval", breakdown: "2.0 km Z2 + 4x 4 min at Z5 (187-201 bpm) w/ 3 min active recovery + cool-down.", hr: "187-201 bpm" } },
+          { day: "Fri", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "bird-dogs, side-planks, forearm planks", sets: "2 sets x 12 reps", focus: "Trunk stability." } },
+          { day: "Sat", type: "longRun", name: "21.5k Max Overdistance Run", dist: "21.5 km", pace: "6:15 - 6:50 /km", details: { type: "longRun", breakdown: "Peak overdistance long run of the entire macrocycle.", hr: "146-172 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "7.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 27, phase: "hmPeak", phaseName: "HM Peak & Overdistance", dates: "May 3 - May 9, 2027", totalDistance: "38.0", runsCount: 4, keyWorkout: "Recovery Step-Back Week", focus: "Scheduled recovery step-back (-21% volume) after peak mileage to absorb fitness gains.",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Core & Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, dead-bugs", sets: "2 sets x 12 reps", focus: "Joint decompression." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "8.0 km", pace: "6:35 - 7:05 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Z3 Steady Touchpoint", dist: "8.0 km", pace: "5:30 - 5:45 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 5.0 km steady at ~5:38/km + 1.5 km cool-down.", hr: "160-174 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Recovery Long Run", dist: "16.0 km", pace: "6:30 - 7:00 /km", details: { type: "longRun", breakdown: "Comfortable 16K aerobic run.", hr: "146-165 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 28, phase: "hmPeak", phaseName: "HM Peak & Overdistance", dates: "May 10 - May 16, 2027", totalDistance: "43.0", runsCount: 4, keyWorkout: "Final 9K HM-Pace Tempo", focus: "Final specific quality week before entering the 3-week Half Marathon taper.",
+        days: [
+          { day: "Mon", type: "strength", name: "Maintenance Strength", dist: "N/A", pace: "N/A", details: { exercises: "goblet squats, calf raises, side-planks", sets: "2 sets x 12 reps", focus: "Maintain neuromuscular tone." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Base Run", dist: "8.5 km", pace: "6:30 - 6:55 /km", details: { type: "easy", breakdown: "Steady Z2 pacing reflecting improved fitness.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "Final 9K HM-Pace Tempo", dist: "10.0 km", pace: "5:20 - 5:30 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 7.0 km at goal HM pace (5:25/km) + 1.5 km cool-down.", hr: "174-185 bpm" } },
+          { day: "Fri", type: "strength", name: "Light Core Mobility", dist: "N/A", pace: "N/A", details: { exercises: "bird-dogs, clamshells", sets: "2 sets x 10 reps", focus: "Hip mobility." } },
+          { day: "Sat", type: "longRun", name: "18.0k Pre-Taper Long Run", dist: "18.0 km", pace: "6:20 - 6:50 /km", details: { type: "longRun", breakdown: "Final 18K long run prior to taper.", hr: "146-170 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "6.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+
+      // PHASE 6: HM TAPER & RACE WEEK (WEEKS 29-31)
+      {
+        week: 29, phase: "hmTaper", phaseName: "HM Taper & Race Week", dates: "May 17 - May 23, 2027", totalDistance: "33.0", runsCount: 4, keyWorkout: "Taper Week 1 (-23% Vol)", focus: "Taper Phase 1: Drop weekly mileage to 33.0 km while retaining sharp threshold pace intervals.",
+        days: [
+          { day: "Mon", type: "strength", name: "Light Mobility & Core", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs, forearm planks", sets: "2 sets x 10 reps", focus: "Keep muscles loose." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "6.5 km", pace: "6:30 - 6:55 /km", details: { type: "easy", breakdown: "Relaxed aerobic maintenance.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "3x 2K @ Goal HM Pace", dist: "8.0 km", pace: "5:20 - 5:30 /km", details: { type: "tempo", breakdown: "1.0 km Z2 + 3x 2.0 km at 5:25/km (90s jog) + 1.0 km cool-down.", hr: "174-184 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Taper Long Run 13K", dist: "13.0 km", pace: "6:30 - 6:55 /km", details: { type: "longRun", breakdown: "Controlled 13K run to keep legs fresh.", hr: "146-165 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "5.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 30, phase: "hmTaper", phaseName: "HM Taper & Race Week", dates: "May 24 - May 30, 2027", totalDistance: "24.5", runsCount: 4, keyWorkout: "Taper Week 2 (-26% Vol)", focus: "Taper Phase 2: Volume drops to 24.5 km. Sharp race-pace cruise touchpoint mid-week.",
+        days: [
+          { day: "Mon", type: "strength", name: "Ultra-Light Mobility", dist: "N/A", pace: "N/A", details: { exercises: "clamshells, bird-dogs", sets: "2 sets x 8 reps", focus: "Zero muscular fatigue." } },
+          { day: "Tue", type: "easy", name: "Zone 2 Easy Run", dist: "6.0 km", pace: "6:30 - 6:55 /km", details: { type: "easy", breakdown: "Easy conversational run.", hr: "146-160 bpm" } },
+          { day: "Wed", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Thu", type: "tempo", name: "2x 2K @ Goal HM Pace", dist: "6.5 km", pace: "5:20 - 5:30 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 2x 2.0 km at 5:25/km (90s jog) + 1.0 km cool-down.", hr: "174-182 bpm" } },
+          { day: "Fri", type: "rest", name: "Rest Day", dist: "N/A", pace: "N/A" },
+          { day: "Sat", type: "longRun", name: "Taper Shakeout 8K", dist: "8.0 km", pace: "6:35 - 7:00 /km", details: { type: "longRun", breakdown: "Light 8K aerobic run.", hr: "146-160 bpm" } },
+          { day: "Sun", type: "easy", name: "Zone 2 Recovery Run", dist: "4.0 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic flush.", hr: "146-160 bpm" } }
+        ]
+      },
+      {
+        week: 31, phase: "hmTaper", phaseName: "HM Taper & Race Week", dates: "May 31 - June 6, 2027", totalDistance: "32.1", runsCount: 4, keyWorkout: "North Shore Classic HM (June 6)", focus: "RACE WEEK! 72-hr carb load starting Thursday; North Shore Classic Half Marathon on Sunday, June 6, 2027!",
+        days: [
+          { day: "Mon", type: "easy", name: "Zone 2 Easy Shakeout", dist: "4.5 km", pace: "6:45 - 7:15 /km", details: { type: "easy", breakdown: "Relaxed aerobic shakeout.", hr: "146-160 bpm" } },
+          { day: "Tue", type: "rest", name: "Rest & Mobility", dist: "N/A", pace: "N/A" },
+          { day: "Wed", type: "tempo", name: "HM Pace Dress Rehearsal", dist: "4.0 km", pace: "5:20 - 5:30 /km", details: { type: "tempo", breakdown: "1.5 km Z2 + 1.5 km at goal HM pace (5:25/km) + 1.0 km cool-down.", hr: "174-182 bpm" } },
+          { day: "Thu", type: "rest", name: "72-Hr Carb Load Day 1", dist: "N/A", pace: "N/A", details: { breakdown: "Begin 72-hr carbohydrate loading (~385g/day) and electrolyte hydration." } },
+          { day: "Fri", type: "easy", name: "Pre-Race Easy Shakeout", dist: "2.5 km", pace: "7:00 - 7:30 /km", details: { type: "easy", breakdown: "Ultra-light 2.5 km jog + 3x 80m strides.", hr: "135-148 bpm" } },
+          { day: "Sat", type: "rest", name: "Pre-Race Complete Rest", dist: "N/A", pace: "N/A", details: { breakdown: "Full rest, hydration, and race gear check." } },
+          { day: "Sun", type: "race", name: "North Shore Classic HM!", dist: "21.1 km", pace: "5:15 - 5:30 /km", details: { type: "race", breakdown: "Primary Goal Race (Sunday, June 6, 2027): Target Sub-1:56:00 (~5:25/km). Open controlled KM 1-5 (5:35/km), lock into 5:22-5:28/km KM 6-15, fuel at KM 7 & 14, and negative split KM 16-21.1!", hr: "174-188 bpm" } }
+        ]
+      }
+    ];
+
+    let activePhaseFilter = 'current';
+    let selectedDayElement = null;
+
+    function getCurrentWeek() {
+      try {
+        // Week 1 starts Monday, November 2, 2026
+        const startDate = new Date(2026, 10, 2);
+        const today = new Date(); 
+        
+        if (isNaN(startDate.getTime()) || isNaN(today.getTime())) return 2; 
+        if (today < startDate) return 1; 
+        
+        const diffTime = today - startDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const weekNum = Math.floor(diffDays / 7) + 1;
+        return Math.min(Math.max(weekNum, 1), 31); 
+      } catch (e) {
+        return 2;
+      }
+    }
+
+    function updateDropdownStyle(phase) {
+      try {
+        const dropdown = document.getElementById('phase-dropdown');
+        if (!dropdown) return;
+        
+        dropdown.className = "w-full text-xs font-semibold py-2.5 px-3 rounded-xl shadow-lg appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer pr-10 hover:border-indigo-400 hover:text-white transition-all";
+        
+        if (phase === 'current' || phase === 'all') {
+          dropdown.classList.add('bg-indigo-950', 'border-indigo-500/50', 'text-indigo-200');
+        } else if (phase === 'recovery') {
+          dropdown.classList.add('bg-teal-950', 'border-teal-500/50', 'text-teal-200');
+        } else if (phase === 'winterBase') {
+          dropdown.classList.add('bg-blue-950', 'border-blue-500/50', 'text-blue-200');
+        } else if (phase === 'hmThreshold') {
+          dropdown.classList.add('bg-amber-950', 'border-amber-500/50', 'text-amber-200');
+        } else if (phase === 'shamrockPrep') {
+          dropdown.classList.add('bg-rose-950', 'border-rose-500/50', 'text-rose-200');
+        } else if (phase === 'hmPeak' || phase === 'hmTaper') {
+          dropdown.classList.add('bg-indigo-950', 'border-indigo-500/50', 'text-indigo-200');
+        }
+      } catch (e) {
+        console.warn("Dropdown style update skipped safely:", e);
+      }
+    }
+
+    function renderCalendar() {
+      try {
+        const container = document.getElementById('weeks-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const currentWeekNum = getCurrentWeek();
+
+        const filteredWeeks = activePhaseFilter === 'current'
+          ? trainingPlan.filter(w => w.week === currentWeekNum)
+          : activePhaseFilter === 'all'
+            ? trainingPlan
+            : trainingPlan.filter(w => w.phase === activePhaseFilter);
+
+        if (filteredWeeks.length === 0) {
+          container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs">No training weeks matching this filter.</div>`;
+          return;
+        }
+
+        // Week 1 starts Monday, November 2, 2026
+        const startYear = 2026;
+        const startMonth = 10;
+        const startDay = 2;
+
+        filteredWeeks.forEach(w => {
+          const isCurrentWeek = w.week === currentWeekNum;
+          const weekCard = document.createElement('div');
+          weekCard.id = `week-card-${w.week}`;
+          weekCard.className = `bg-[#0b101d] border rounded-2xl overflow-hidden shadow-lg transition-all duration-200 hover:border-slate-700/50 ${isCurrentWeek ? 'current-week-highlight' : 'border-slate-800/80'}`;
+          
+          let phaseBadgeColor = "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
+          if (w.phase === 'recovery') phaseBadgeColor = "bg-teal-500/10 border-teal-500/20 text-teal-400";
+          if (w.phase === 'winterBase') phaseBadgeColor = "bg-blue-500/10 border-blue-500/20 text-blue-400";
+          if (w.phase === 'hmThreshold') phaseBadgeColor = "bg-amber-500/10 border-amber-500/20 text-amber-400";
+          if (w.phase === 'shamrockPrep') phaseBadgeColor = "bg-rose-500/10 border-rose-500/20 text-rose-400";
+          if (w.phase === 'hmPeak' || w.phase === 'hmTaper') phaseBadgeColor = "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
+
+          let daysHtml = '';
+          w.days.forEach((d, idx) => {
+            let dayBadgeBg = "bg-slate-800 text-slate-400";
+            let borderHover = "hover:border-indigo-500/60 hover:bg-slate-900/40";
+            let textPaceColor = "text-slate-400";
+            let distDisplay = d.dist !== "N/A" ? d.dist : "---";
+
+            const rawType = d.type || 'rest';
+            let workoutIcon = '';
+
+            if (rawType === 'easy') {
+              dayBadgeBg = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+              textPaceColor = "text-emerald-400";
+              workoutIcon = `<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`;
+            } else if (rawType === 'longRun') {
+              dayBadgeBg = "bg-teal-500/10 text-teal-400 border border-teal-500/30";
+              textPaceColor = "text-teal-400";
+              workoutIcon = `<svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>`;
+            } else if (rawType === 'interval') {
+              dayBadgeBg = "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30";
+              textPaceColor = "text-indigo-400 animate-pulse";
+              workoutIcon = `<svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`;
+            } else if (rawType === 'tempo') {
+              dayBadgeBg = "bg-blue-500/10 text-blue-400 border border-blue-500/30";
+              textPaceColor = "text-blue-400";
+              workoutIcon = `<svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+            } else if (rawType === 'strength') {
+              dayBadgeBg = "bg-orange-500/10 text-orange-400 border border-orange-500/30";
+              textPaceColor = "text-orange-400";
+              workoutIcon = `<svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
+            } else if (rawType === 'race') {
+              dayBadgeBg = "bg-rose-500/15 text-rose-400 border border-rose-500/40 font-black animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.25)]";
+              textPaceColor = "text-rose-400 font-extrabold";
+              workoutIcon = `<svg class="w-3.5 h-3.5 text-rose-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a3 3 0 10-3 3h3zm0-3a1 1 0 011 1v1H9V3a1 1 0 011-1h2z"/></svg>`;
+            } else {
+              workoutIcon = `<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
+            }
+
+            const daysFromStart = ((w.week - 1) * 7) + idx;
+            const currentDayDate = new Date(startYear, startMonth, startDay + daysFromStart);
+            const dateLabel = currentDayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            
+            const todayReal = new Date();
+            const isToday = currentDayDate.getFullYear() === todayReal.getFullYear() &&
+                            currentDayDate.getMonth() === todayReal.getMonth() &&
+                            currentDayDate.getDate() === todayReal.getDate();
+            
+            const uniqueDayId = `week-${w.week}-day-${idx}`;
+
+            daysHtml += `
+              <button id="${uniqueDayId}" data-is-today="${isToday}" onclick="selectDay(${w.week}, ${idx}, '${uniqueDayId}', true)" class="workout-card ${isToday ? 'today-highlight' : 'bg-slate-950/40 border border-slate-800/80'} border rounded-2xl p-3 cursor-pointer transition-all duration-200 ${borderHover} flex flex-col justify-between h-28 no-select focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm min-h-[112px]">
+                <div class="flex justify-between items-start w-full">
+                  <span class="${isToday ? 'text-amber-500 font-extrabold' : 'text-slate-500 font-bold'} text-[9px] uppercase">${d.day} <span class="text-slate-600 font-normal">(${dateLabel})</span></span>
+                  <span class="text-[8px] px-2 py-0.5 rounded font-bold ${dayBadgeBg}">${rawType === 'interval' ? 'HIIT 4x4' : rawType.toUpperCase()}</span>
+                </div>
+                <div class="my-1">
+                  <div class="text-sm font-extrabold text-slate-200 tracking-tight leading-none flex items-center gap-1.5">
+                    ${workoutIcon}
+                    ${distDisplay}
+                  </div>
+                  <div class="text-[9px] text-slate-400 truncate mt-1 font-medium">${d.name}</div>
+                </div>
+                <div class="text-[9px] truncate ${textPaceColor} font-semibold">${d.pace !== "N/A" ? d.pace : "REST DAY"}</div>
+              </button>
+            `;
+          });
+
+          weekCard.innerHTML = `
+            <!-- Week Header Info Panel -->
+            <div class="bg-slate-900/30 p-4 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-center justify-between w-full md:w-auto">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-sm text-indigo-400 border border-slate-700/50">
+                    W${w.week}
+                  </div>
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <h3 class="font-bold text-sm text-slate-100">Week ${w.week} Schedule</h3>
+                      <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${phaseBadgeColor}">${w.phaseName}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium">${w.dates}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 md:flex items-center md:space-x-4 gap-2.5 text-xs border-t md:border-t-0 border-slate-800/80 pt-3 md:pt-0">
+                <div class="bg-slate-950/40 border border-slate-800/80 px-3.5 py-1.5 rounded-xl flex flex-col justify-center">
+                  <span class="text-slate-500 block text-[9px] uppercase font-bold tracking-wider">Total Running</span>
+                  <span class="font-extrabold text-slate-200 mt-0.5">${w.totalDistance} km (${w.runsCount} runs)</span>
+                </div>
+                <div class="bg-slate-950/40 border border-slate-800/80 px-3.5 py-1.5 rounded-xl flex flex-col justify-center">
+                  <span class="text-slate-500 block text-[9px] uppercase font-bold tracking-wider">Key Target</span>
+                  <span class="font-extrabold text-slate-200 mt-0.5 truncate block max-w-[145px]">${w.keyWorkout}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Week Calendar Grid -->
+            <div class="p-4 bg-slate-900/10">
+              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                ${daysHtml}
+              </div>
+              <div class="mt-4 flex items-start space-x-2.5 bg-slate-950/25 border border-slate-800/50 rounded-xl p-3 text-[11px] text-slate-400">
+                <span class="text-indigo-400 font-extrabold uppercase tracking-wider text-[10px] shrink-0 mt-0.5 flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Focus:
+                </span>
+                <p class="leading-relaxed font-medium text-slate-300">${w.focus}</p>
+              </div>
+            </div>
+          `;
+          
+          container.appendChild(weekCard);
+        });
+      } catch (e) {
+        console.error("Calendar rendering crashed:", e);
+      }
+    }
+
+    function selectDay(weekNum, dayIdx, elementId, openOverlay = true) {
+      try {
+        if (selectedDayElement) {
+          selectedDayElement.classList.remove('border-indigo-500', 'bg-indigo-950/20', 'shadow-lg');
+          const wasToday = selectedDayElement.getAttribute('data-is-today') === 'true';
+          if (wasToday) {
+            selectedDayElement.classList.add('today-highlight');
+          } else {
+            selectedDayElement.classList.add('border-slate-800/80', 'bg-slate-950/40');
+          }
+        }
+
+        selectedDayElement = document.getElementById(elementId);
+        if (selectedDayElement) {
+          const isToday = selectedDayElement.getAttribute('data-is-today') === 'true';
+          if (isToday) {
+            selectedDayElement.classList.remove('border-slate-800/80', 'bg-slate-950/40');
+            selectedDayElement.classList.add('bg-indigo-950/20', 'shadow-lg', 'today-highlight');
+          } else {
+            selectedDayElement.classList.remove('border-slate-800/80', 'bg-slate-950/40', 'today-highlight');
+            selectedDayElement.classList.add('border-indigo-500', 'bg-indigo-950/20', 'shadow-lg');
+          }
+        }
+
+        const week = trainingPlan.find(w => w.week === weekNum);
+        if (!week) return;
+        const day = week.days[dayIdx];
+        if (!day) return;
+        const targetBox = document.getElementById('selection-details');
+        if (!targetBox) return;
+
+        const rawType = day.type || 'rest';
+        let detailsHtml = '';
+
+        if (rawType === 'rest') {
+          const restNote = (day.details && day.details.breakdown) ? day.details.breakdown : "Rest and cellular recovery is when physical cardiovascular gains actually occur. Avoid physical stressors and prioritize joint decompression.";
+          detailsHtml = `
+            <div class="space-y-4 text-slate-300">
+              <div class="flex items-center space-x-3 pb-3 border-b border-slate-800">
+                <span class="px-2.5 py-1 text-xs font-bold rounded-full bg-slate-800 text-slate-400 border border-slate-700/60">REST</span>
+                <h2 class="text-sm md:text-base font-extrabold text-white">${day.name}</h2>
+              </div>
+              <p class="text-xs leading-relaxed">
+                ${restNote}
+              </p>
+              <div class="bg-indigo-950/15 border border-indigo-500/25 rounded-2xl p-4 text-xs space-y-2">
+                <span class="font-extrabold text-indigo-400 uppercase tracking-widest block text-[9px]">COACH DIRECTIVE</span>
+                <p class="leading-relaxed text-slate-200">Drink at least 2.5 Liters of water today. Prioritize 8 hours of quality deep sleep.</p>
+              </div>
+            </div>
+          `;
+        } else if (rawType === 'strength') {
+          const details = day.details || { exercises: "russian twists, dead-bugs", sets: "3 sets", focus: "Core control" };
+          const exercisesList = details.exercises.split(',').map(ex => ex.trim().toLowerCase());
+          let tabsHeaderHtml = '';
+          let tabsContentHtml = '';
+
+          exercisesList.forEach((exToken, exIdx) => {
+            const exObj = exerciseDatabase[exToken] || {
+              muscles: "Target muscle stabilizers",
+              benefits: "Protects target joints during high-impact running.",
+              cues: "Focus on controlled posture and breathing.",
+              mod: "Bodyweight-only variation",
+              prog: "Slowing tempo down (isometric holds)"
+            };
+
+            const formattedLabel = exToken.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+            tabsHeaderHtml += `
+              <button onclick="switchStrengthTab(${exIdx})" id="strength-tab-btn-${exIdx}" class="strength-tab-btn px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${exIdx === 0 ? 'bg-indigo-500 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                ${formattedLabel}
+              </button>
+            `;
+
+            tabsContentHtml += `
+              <div id="strength-tab-content-${exIdx}" class="strength-tab-content space-y-3 mt-3 ${exIdx === 0 ? '' : 'hidden'}">
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/80 text-[11px]">
+                  <span class="text-slate-500 font-extrabold block text-[8px] uppercase tracking-wider mb-0.5">Targeted Muscle Groups</span>
+                  <p class="text-slate-200 font-bold">${exObj.muscles}</p>
+                </div>
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/80 text-[11px]">
+                  <span class="text-slate-500 font-extrabold block text-[8px] uppercase tracking-wider mb-0.5">Runner-Specific Benefits</span>
+                  <p class="text-slate-300 leading-normal font-medium">${exObj.benefits}</p>
+                </div>
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/80 text-[11px]">
+                  <span class="text-indigo-400 font-extrabold block text-[8px] uppercase tracking-wider mb-0.5">Actionable Form Cues</span>
+                  <p class="text-slate-300 leading-normal font-medium">${exObj.cues}</p>
+                </div>
+              </div>
+            `;
+          });
+
+          detailsHtml = `
+            <div class="space-y-4 text-slate-300">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                  <span class="px-2.5 py-1 text-xs font-bold rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/30">STRENGTH</span>
+                  <h2 class="text-sm md:text-base font-extrabold text-white">${day.name}</h2>
+                </div>
+                <span class="text-xs text-slate-400 font-bold bg-slate-800/50 px-2.5 py-1 rounded-full">${details.sets}</span>
+              </div>
+
+              <div class="space-y-2">
+                <span class="text-slate-500 font-extrabold block text-[8px] uppercase tracking-wider mb-1.5">Interactive Exercise Guide</span>
+                <div class="flex flex-wrap gap-1.5 pb-1 border-b border-slate-800 font-mono">
+                  ${tabsHeaderHtml}
+                </div>
+                ${tabsContentHtml}
+              </div>
+            </div>
+          `;
+        } else {
+          const details = day.details || { breakdown: "Aerobic maintenance run.", hr: "Zone 2" };
+          const calibration = targetGuidelines[rawType] || targetGuidelines.easy;
+          const runCategory = day.type === 'race' ? 'race' : day.type;
+          const steps = runningStepPlan[runCategory] || runningStepPlan.easy;
+
+          detailsHtml = `
+            <div class="space-y-4 text-slate-300">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                  <span class="px-2.5 py-1 text-xs font-bold rounded-full uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">${rawType === 'interval' ? 'HIIT 4x4' : rawType}</span>
+                  <h2 class="text-sm md:text-base font-extrabold text-white">${day.name}</h2>
+                </div>
+                <span class="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">${day.dist}</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 text-[11px]">
+                <div class="bg-slate-950/50 p-3.5 border border-slate-800 rounded-2xl">
+                  <span class="text-slate-500 font-extrabold block mb-1.5 uppercase text-[8px] tracking-wider">TARGET HEART RATE</span>
+                  <p class="text-indigo-400 font-extrabold text-xs">${details.hr || calibration.hr}</p>
+                  <p class="text-[9px] text-slate-500 mt-1">${calibration.desc}</p>
+                </div>
+
+                <div class="bg-slate-950/50 p-3.5 border border-slate-800 rounded-2xl">
+                  <span class="text-slate-500 font-extrabold block mb-1.5 uppercase text-[8px] tracking-wider">TARGET WORKOUT PACE</span>
+                  <p class="text-emerald-400 font-extrabold text-xs">${day.pace}</p>
+                  <p class="text-[9px] text-slate-500 mt-1">Focus on holding steady pacing.</p>
+                </div>
+              </div>
+
+              <div class="space-y-2.5">
+                <span class="text-slate-500 font-extrabold block text-[8px] uppercase tracking-wider mb-1.5">3-Step Session Guide</span>
+                
+                <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl text-[11px] leading-relaxed">
+                  <span class="text-indigo-400 font-extrabold block text-[8px] uppercase tracking-wider mb-0.5">Step 1: Warm-up Protocols</span>
+                  <p class="text-slate-300 font-medium">${steps.warmup}</p>
+                </div>
+
+                <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl text-[11px] leading-relaxed">
+                  <span class="text-emerald-400 font-extrabold block text-[8px] uppercase tracking-wider mb-0.5">Step 2: Core Performance Block</span>
+                  <p class="text-slate-200 font-semibold">${details.breakdown}</p>
+                </div>
+
+                <div class="bg-slate-950/40 p-3 border border-slate-800 rounded-xl text-[11px] leading-relaxed">
+                  <span class="text-slate-500 font-extrabold block text-[8px] uppercase tracking-wider mb-0.5">Step 3: Post-Run Cool-down</span>
+                  <p class="text-slate-300 font-medium">${steps.cooldown}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        targetBox.innerHTML = detailsHtml;
+
+        if (openOverlay) {
+          const modal = document.getElementById('detail-modal');
+          if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            setTimeout(() => {
+              modal.classList.remove('opacity-0', 'pointer-events-none');
+              const card = modal.querySelector('.modal-content-card');
+              if (card) {
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+              }
+            }, 15);
+          }
+        }
+      } catch (e) {
+        console.error("Error executing selectDay: ", e);
+      }
+    }
+
+    function switchStrengthTab(index) {
+      try {
+        document.querySelectorAll('.strength-tab-btn').forEach((btn, idx) => {
+          if (idx === index) {
+            btn.className = "strength-tab-btn px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all bg-indigo-500 text-white shadow-md";
+          } else {
+            btn.className = "strength-tab-btn px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all bg-slate-800 text-slate-400 hover:text-white";
+          }
+        });
+
+        document.querySelectorAll('.strength-tab-content').forEach((content, idx) => {
+          if (idx === index) {
+            content.classList.remove('hidden');
+          } else {
+            content.classList.add('hidden');
+          }
+        });
+      } catch (e) {
+        console.warn("Strength tab switch exception intercepted:", e);
+      }
+    }
+
+    function closeModal() {
+      try {
+        const modal = document.getElementById('detail-modal');
+        if (!modal) return;
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        const card = modal.querySelector('.modal-content-card');
+        if (card) {
+          card.classList.remove('scale-100');
+          card.classList.add('scale-95');
+        }
+        document.body.classList.remove('overflow-hidden');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 200);
+      } catch (e) {
+        console.warn("Modal close error safely ignored:", e);
+      }
+    }
+
+    function openBriefing(id) {
+      try {
+        const data = briefingData[id];
+        if (!data) return;
+
+        const categoryEl = document.getElementById('briefing-category');
+        const titleEl = document.getElementById('briefing-title');
+        const subtitleEl = document.getElementById('briefing-subtitle');
+        const contentEl = document.getElementById('briefing-content');
+
+        if (categoryEl) categoryEl.innerText = data.category;
+        if (titleEl) titleEl.innerText = data.title;
+        if (subtitleEl) subtitleEl.innerText = data.subtitle;
+        if (contentEl) contentEl.innerHTML = data.content;
+
+        const modal = document.getElementById('briefing-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          document.body.classList.add('overflow-hidden');
+          
+          setTimeout(() => {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const card = modal.querySelector('.modal-content-card');
+            if (card) {
+              card.classList.remove('scale-95');
+              card.classList.add('scale-100');
+            }
+          }, 15);
+        }
+      } catch (e) {
+        console.error("Coach report briefing presentation failed:", e);
+      }
+    }
+
+    function closeBriefingModal() {
+      try {
+        const modal = document.getElementById('briefing-modal');
+        if (!modal) return;
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        const card = modal.querySelector('.modal-content-card');
+        if (card) {
+          card.classList.remove('scale-100');
+          card.classList.add('scale-95');
+        }
+        document.body.classList.remove('overflow-hidden');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 200);
+      } catch (e) {
+        console.warn("Briefing close error safely ignored:", e);
+      }
+    }
+
+    function toggleSidebar() {
+      try {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (!sidebar || !overlay) return;
+        const isMobile = window.innerWidth < 1024;
+
+        if (isMobile) {
+          if (sidebar.classList.contains('-translate-x-full')) {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            document.body.classList.add('overflow-hidden');
+          } else {
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            document.body.classList.remove('overflow-hidden');
+          }
+        } else {
+          if (sidebar.classList.contains('lg:-ml-80')) {
+            sidebar.classList.remove('lg:-ml-80', 'lg:opacity-0');
+          } else {
+            sidebar.classList.add('lg:-ml-80', 'lg:opacity-0');
+          }
+        }
+      } catch (e) {
+        console.warn("Sidebar toggle caught exception:", e);
+      }
+    }
+
+    function filterPhase(phase) {
+      try {
+        activePhaseFilter = phase;
+        
+        const dropdownSelect = document.getElementById('phase-dropdown');
+        if (dropdownSelect && dropdownSelect.value !== phase) {
+          dropdownSelect.value = phase;
+        }
+
+        updateDropdownStyle(phase);
+        renderCalendar();
+      } catch (e) {
+        console.error("Filter phase application crashed:", e);
+      }
+    }
+
+    function renderLegend() {
+      try {
+        const counts = { easy: 0, longRun: 0, interval: 0, tempo: 0, strength: 0, race: 0, rest: 0 };
+        let totalDays = 0;
+        trainingPlan.forEach(w => {
+          w.days.forEach(d => {
+            const t = d.type || 'rest';
+            if (counts.hasOwnProperty(t)) {
+              counts[t]++;
+            } else {
+              counts.rest++;
+            }
+            totalDays++;
+          });
+        });
+
+        const legendData = [
+          { type: 'easy', label: 'Easy Run', color: 'bg-emerald-500 shadow-emerald-500/50' },
+          { type: 'longRun', label: 'Long Run', color: 'bg-teal-500 shadow-teal-500/50' },
+          { type: 'interval', label: 'Norwegian 4x4', color: 'bg-indigo-500 shadow-indigo-500/50' },
+          { type: 'tempo', label: 'Tempo', color: 'bg-blue-500 shadow-blue-500/50' },
+          { type: 'strength', label: 'Strength', color: 'bg-orange-500 shadow-orange-500/50' },
+          { type: 'race', label: 'Race Day', color: 'bg-rose-500 shadow-rose-500/50' },
+          { type: 'rest', label: 'Rest Day', color: 'bg-slate-500 shadow-slate-500/50' }
+        ];
+
+        const container = document.getElementById('sidebar-legend-container');
+        if (container) {
+          container.innerHTML = legendData.map(item => {
+            const count = counts[item.type] || 0;
+            const pct = ((count / totalDays) * 100).toFixed(1);
+            return `
+              <div class="flex items-center space-x-1.5 p-1 rounded hover:bg-slate-950/30 transition-all">
+                <span class="w-2 rounded-full h-2 ${item.color} shrink-0"></span>
+                <div class="truncate">
+                  <span class="text-slate-300 font-bold block leading-tight text-[8px]">${item.label}</span>
+                  <span class="text-[7.5px] text-slate-500 font-medium block">${count}d (${pct}%)</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (e) {
+        console.warn("Legend rendering failed silently:", e);
+      }
+    }
+
+    function init() {
+      try {
+        renderCalendar();
+        renderLegend();
+        updateDropdownStyle(activePhaseFilter);
+        
+        let currentWeekNum = 2;
+        try {
+          currentWeekNum = getCurrentWeek();
+        } catch (e) {
+          console.warn("Failed to calculate active week number:", e);
+        }
+        
+        let activeDayIdx = 0;
+        try {
+          const today = new Date();
+          const startDate = new Date(2026, 10, 2);
+          const diffTime = Math.max(0, today - startDate);
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          activeDayIdx = diffDays % 7;
+          if (isNaN(activeDayIdx) || activeDayIdx < 0 || activeDayIdx > 6) {
+            activeDayIdx = 0;
+          }
+        } catch (e) {
+          console.warn("Failed to calculate day of week index:", e);
+        }
+        
+        try {
+          selectDay(currentWeekNum, activeDayIdx, `week-${currentWeekNum}-day-${activeDayIdx}`, false);
+        } catch (e) {
+          console.warn("Initialization selectDay failed:", e);
+        }
+        
+        setTimeout(() => {
+          try {
+            const activeWeekCard = document.getElementById(`week-card-${currentWeekNum}`);
+            if (activeWeekCard) {
+              activeWeekCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          } catch (err) {
+            try {
+              const activeWeekCard = document.getElementById(`week-card-${currentWeekNum}`);
+              if (activeWeekCard) {
+                activeWeekCard.scrollIntoView();
+              }
+            } catch (e) {}
+          }
+        }, 350);
+
+        try {
+          const safeAddListener = (id, event, handler) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener(event, handler);
+          };
+
+          safeAddListener('sidebar-close-btn', 'click', toggleSidebar);
+          safeAddListener('sidebar-trigger-btn', 'click', toggleSidebar);
+          safeAddListener('sidebar-overlay', 'click', toggleSidebar);
+          
+          safeAddListener('detail-modal-close-btn', 'click', closeModal);
+          safeAddListener('detail-modal', 'click', closeModal);
+          
+          const detailCard = document.querySelector('#detail-modal .modal-content-card');
+          if (detailCard) {
+            detailCard.addEventListener('click', (e) => e.stopPropagation());
+          }
+
+          safeAddListener('briefing-modal-close-btn', 'click', closeBriefingModal);
+          safeAddListener('briefing-modal', 'click', closeBriefingModal);
+
+          const briefingCard = document.querySelector('#briefing-modal .modal-content-card');
+          if (briefingCard) {
+            briefingCard.addEventListener('click', (e) => e.stopPropagation());
+          }
+
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+              closeBriefingModal();
+              closeModal();
+            }
+          });
+        } catch (e) {
+          console.warn("Programmatic event listener binding skipped safely:", e);
+        }
+
+      } catch (globalError) {
+        console.error("Global startup configuration crashed:", globalError);
+      }
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      init();
+    } else {
+      window.addEventListener('load', init);
+    }
+  </script>
+</body>
+</html>
