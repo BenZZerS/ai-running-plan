@@ -1,53 +1,107 @@
-# Apex Endurance Coach — Athlete Training Documentation
+# Apex — GitHub Pages release
 
-## 1. Athlete Baseline & Biometric Profile (Benz)
+**Mandatory development rule:** all changes must remain compatible with GitHub Pages as a static website. Use browser-compatible technologies and client-side storage; no backend, server-only APIs, secret-bearing server configuration or custom server routing may be required. Preserve existing data, features and experience unless changes are explicitly authorized. Keep this package self-contained, retain relative assets and hash routing, and verify packaged resources and affected browser behavior at root/repository URLs after significant changes. If a feature cannot meet these constraints, explain the limitation and propose a compatible alternative before implementing it. Local build/test tools are never production runtime dependencies. No commit, push or publication is authorized by compatibility checks alone.
 
-* **Age / Weight / Height:** Born Aug 4, 1989 | 56.5 kg | 170 cm
-* **Max Heart Rate (Max HR):** 201 bpm
-* **Resting Heart Rate (RHR):** 64 bpm
-* **Lactate Threshold HR (LTHR):** 190 bpm
-* **Heart Rate Reserve (HRR):** 137 bpm ($201 - 64$)
+A personal, responsive running companion for Benz: 31 weeks from November 2, 2026 through June 6, 2027, toward a sub-2 North Shore Classic half marathon, with supporting Shamrock Shuffle 8K (March 21) and Cinco de Miler five-mile (May 8) tune-ups.
 
-## 2. Historical Race Benchmarks (Retained)
+## Features and dependencies
 
-* **The Big 10K (July 11, 2026):** 10.07 km in **59:04** (Average Pace: **5:52 /km**)
-* **Hot Chocolate 15K (Nov 1, 2026):** 15.10 km in **1:29:57** (Average Pace: **5:57 /km**, Best Pace: 4:47 /km | Avg HR: 174 bpm, Max HR: 187 bpm | Avg Cadence: 170 spm | Avg Power: 223 W | Ground Contact Time: 264 ms)
+Overview with a date-driven Today's Workout card and dynamic primary-race countdown, Monday-first icon-only monthly Overview calendar, phase/week Calendar, six consistent workout categories with subtype filters and combined-day icons, calculated HRR zones with clearly estimated effort pace examples, volume charts and four coach reports, athlete history, 14 strength guides with static two-frame movement illustrations and front/back muscle-region maps, and Race Performance & Prediction. Verified 5K/10K PBs, reported versus derived paces, Riegel equivalents and goal gaps remain distinct. Race performance includes local verified-result entry, event entry and primary selection. Optional manual completion marks and JSON export stay in the current browser. The calendar is a proposal, not completed activity or confirmed race readiness.
 
-## 3. Heart Rate Reserve (%HRR) & Baseline vs. Projected Pace Targets
+Plain HTML/CSS and classic JavaScript; no packages, build step, Node installation, backend, account, keys, CDN, or remote fonts are needed to publish or use this folder. A modern browser with JavaScript is required. Research/event links are external only when opened. All application assets are local.
 
-Calculated using formula: $\text{Target HR} = 64 + (\%\text{HRR} \times 137)$
+Scheduled running excludes the additional warm-up/cool-down running shown separately. The half marathon retains its exact 21.0975 km distance. Today follows America/Chicago regardless of the device time zone. Training data, calculations, design and behavior are preserved from the source project.
 
-* **Zone 1 (50–60% HRR | 133 – 146 bpm):** Active Recovery & Warm-up (`7:30 – 8:00 /km`)
-* **Zone 2 (60–70% HRR | 146 – 160 bpm — Aerobic Base):**
-  * **Current Baseline:** `6:45 – 7:15 /km` (anchored around `~7:00 /km`)
-  * **Projected June 2027 Race-Day Fitness:** `6:25 – 6:50 /km`
-* **Zone 3 (70–80% HRR | 160 – 174 bpm — Steady / Moderate):**
-  * **Current Baseline:** `5:40 – 6:00 /km` (anchored around `~5:45 /km`)
-  * **Projected June 2027 Race-Day Fitness:** `5:25 – 5:45 /km`
-* **Zone 4 (80–90% HRR | 174 – 187 bpm — Lactate Threshold):**
-  * **Current Baseline:** `5:20 – 5:35 /km`
-  * **Projected Goal Half Marathon Pace:** `5:15 – 5:30 /km`
-* **Zone 5 (90–100% HRR | 187 – 201 bpm — VO2 Max & Speed):**
-  * **Current HIIT Intervals:** `4:35 – 5:00 /km`
-  * **Projected HIIT / 8K Tune-Up Pace:** `4:25 – 5:10 /km`
+## Complete repository structure
 
-## 4. 2027 Dual-Race Macrocycle (Monday–Sunday Cycle | Nov 2, 2026 – June 6, 2027)
+~~~text
+.
+├── .nojekyll
+├── README.md
+├── index.html
+├── styles.css
+├── app.js
+├── training.js
+├── exercises.js
+└── assets/
+    ├── apex.svg
+    └── terrain.svg
+~~~
 
-* **Weekly Cycle Format:** Standardized **Monday–Sunday** (7-day) training weeks.
-* **Calendar Start Date (Week 1):** **Monday, November 2, 2026** (Nov 2 – Nov 8, 2026), following the Nov 1 Hot Chocolate 15K completion.
-* **Tune-Up Race (Week 20 — Sunday, March 21, 2027):** Bank of America Shamrock Shuffle 8K (Target: `~40:45 – 41:30` @ `5:05 – 5:15 /km`)
-* **Primary Goal Race (Week 31 — Sunday, June 6, 2027):** North Shore Classic Half Marathon (Target: **Sub-1:56:00** @ `5:15 – 5:30 /km`)
+These nine files are the entire release. Put their CONTENTS at the repository root; do not upload a parent release/ folder. Keep the empty .nojekyll file (Finder: Command-Shift-period reveals hidden files). No custom workflow is needed: GitHub manages branch-based Pages deployment. No CNAME, base tag, URL rewrite, custom 404, package manifest, or machine configuration is required. The full development README.html is intentionally excluded; the app does not reference it. The no-JavaScript message explains how to enable the app; no private archive is needed.
 
-### Periodization Phases & Optimization Principles
+## Before publication
 
-1. **Phase 1: Post-15K Recovery & Transition (Weeks 1–2 | Nov 2–Nov 15, 2026):** Begins Monday, Nov 2 with complete rest, mobility, and low-intensity Z1/Z2 recovery runs following the Nov 1 15K race.
-2. **Phase 2: Winter Aerobic Base Build (Weeks 3–8 | Nov 16–Dec 27, 2026):** Establishes an 80/20 polarized structure (4 runs/week) building gradually ($\le 10\%$ weekly increases) to 32.0 km/week at `6:45 – 7:15 /km` Z2 pace, supported by twice-weekly strength/core work and a scheduled deload in Week 6.
-3. **Phase 3: HM Threshold & Steady Endurance (Weeks 9–16 | Dec 28, 2026–Feb 21, 2027):** Introduces Z3 steady runs (`5:40 – 6:00 /km`) and Z4 threshold tempos (`5:20 – 5:35 /km`), progressing long runs from 14.5 km to 18.5 km with scheduled step-back weeks in Weeks 9, 13, and 16.
-4. **Phase 4: VO2 Max & Shamrock Shuffle 8K Tune-Up (Weeks 17–21 | Feb 22–Mar 28, 2027):** Incorporates Norwegian 4x4 HIIT intervals and 8K pace repeats, features a mini-taper in Week 20 culminating in the **Sunday, March 21 Shamrock Shuffle 8K**, and concludes with a recovery week (Week 21).
-5. **Phase 5: HM Overdistance & Specific Peak (Weeks 22–28 | Mar 29–May 16, 2027):** Reaches peak weekly volume (46.0–48.0 km/week) with race-simulation fast-finish long runs up to 21.5 km and mid-run gel fueling practice, balanced by scheduled deload weeks in Weeks 24 and 27.
-6. **Phase 6: HM Taper & Race Week (Weeks 29–31 | May 17–June 6, 2027):** 3-week progressive taper reducing volume by ~40% while retaining sharp HM-pace touchpoints, 72-hour carbohydrate loading (385g/day), and race execution on **Sunday, June 6, 2027**.
+This app embeds the athlete's birth date, body metrics, HR values, race history and full plan. Visitors can read these from the site and its static files. They are deliberately preserved, not anonymized. A private repository does not by itself make a Pages website private. Confirm the intended repository, visibility and access policy before publishing. No push, repository creation, Pages setting change or publication was performed to prepare this folder.
 
-## 5. Application Implementation Changes
+No credentials are required or intentionally packaged. Common credential-pattern checks are useful but are not an exhaustive security audit. Keep exports, .env files, private keys, browser profiles, archives and QA material out of this repository.
 
-* **`index.html`:** Updated the left sidebar Training Targets to display baseline vs. projected June 2027 pace ranges for Zone 2 (`6:45–7:15 /km` baseline $\rightarrow$ `6:25–6:50 /km` projected) and Zone 3 (`5:40–6:00 /km` baseline $\rightarrow$ `5:25–5:45 /km` projected); converted the entire calendar to a Monday–Sunday weekly cycle starting **Monday, November 2, 2026 (Week 1)** through **Sunday, June 6, 2027 (Week 31)**; aligned the Shamrock Shuffle 8K on Sunday, March 21, 2027 (Week 20) and North Shore Classic HM on Sunday, June 6, 2027 (Week 31).
-* **`README.md`:** Synchronized all documentation sections with the revised training target ranges and Monday–Sunday 31-week schedule.
+## Publish to GitHub Pages — owner actions after approval
+
+1. Create an EMPTY GitHub repository using your own account and intended visibility. Do not prepopulate a competing README. Pages availability depends on your plan and organization policy. Copy its actual HTTPS clone URL.
+2. Open Terminal in this release folder, or a separate copy of these nine files. Verify index.html and .nojekyll are at the top level. For a fresh folder with no Git repository, use the following commands, replacing OWNER and REPOSITORY with the actual destination. Do not run git init over an existing checkout; use that repository's normal review process instead.
+
+~~~sh
+git init -b main
+git add index.html styles.css app.js training.js exercises.js assets/apex.svg assets/terrain.svg README.md .nojekyll
+git diff --cached --stat
+git diff --cached
+git commit -m "Prepare Apex static release"
+git remote add origin https://github.com/OWNER/REPOSITORY.git
+git remote -v
+git push -u origin main
+~~~
+
+Authenticate with your own GitHub account through the normal credential helper or SSH process; never put a token in these files or the remote URL. If Git requests a commit identity, configure your own name and verified or GitHub noreply email for this repository.
+
+3. On GitHub open Settings → Pages → Build and deployment. Select Source: Deploy from a branch; Branch: main; Folder: /(root); Save. Do not select GitHub Actions as a custom publishing source for this package. GitHub still uses its own deployment run internally. No custom workflow or deployment token needs to be added.
+4. Wait for GitHub's Pages deployment to finish; inspect Actions if it fails. Open the URL shown in Settings → Pages. A normal project URL has the form https://OWNER.github.io/REPOSITORY/ (placeholders only). Use the trailing slash. Confirm HTTPS and enable Enforce HTTPS when available. No domain or DNS change is needed for the standard URL.
+5. Check Overview, Calendar, Workouts, HR Zones, Reports, Athlete Strength and Race performance at phone/tablet/desktop sizes. Open sessions, all four reports and exercise guides; check search/filtering, exact race totals, charts, Escape/focus, and JSON export. Temporarily mark a session, refresh, then undo it. Open and refresh /REPOSITORY/#calendar directly. Use hash routes; /REPOSITORY/calendar is not a route. Check for missing resources or browser security errors.
+
+Official instructions: [publishing source](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site) and [creating a static Pages site](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site). The .nojekyll marker disables Jekyll processing.
+
+## Update and redeploy
+
+Keep a private source-project backup with its tests, build helpers, canonical README and AGENTS instructions. This release is independently editable and deployable; those development files are not production dependencies.
+
+Preferred: edit the original source project, preserve its training contracts, run node scripts/check.cjs, node scripts/build-release.cjs, and node --test tests/plan.test.cjs tests/performance.test.cjs tests/daily.test.cjs tests/presentation.test.cjs tests/audit.test.cjs tests/release.test.cjs from that project's root. The builder refreshes the nine release files with content-derived asset versions and HTML security/referrer metadata. It refuses unexpected files or links and never deletes a repository. If this release folder has become a Git checkout, generate in a clean source copy and copy the nine reviewed files into the checkout instead. Never overwrite .git or existing repository settings.
+
+Alternatively, edit the static files directly in a separate release checkout with no build required. If a referenced asset changes, update its ?v= query in index.html; if terrain.svg changes update its version in styles.css, then update the stylesheet version in index.html. Versions are cache keys; the source builder computes SHA-256 prefixes automatically. Preserve relative paths, deferred script order, the HTML Content Security Policy, no-referrer metadata, and .nojekyll. Inline styles are allowed for existing UI rendering; inline scripts and remote resources are blocked. Keep this README aligned with intentional deployment changes.
+
+Preview through any local static HTTP server rooted at this folder, then repeat the checks above. No file outside this folder is needed. Direct file opening is supported by classic scripts, though browser storage policies may differ; HTTP preview is preferred for deployment checks.
+
+In the release repository, start from an up-to-date clean main, create an update branch, copy/edit the intended files, inspect git diff, stage only the nine release paths, commit, push that branch and open a pull request. Merge after review. Every later push/merge to the configured main branch automatically redeploys; it is a publication action. No local test workflow is included in this minimal package. Verify the live deployment after each approved update. To roll back, revert the relevant commit through the same reviewed process; do not force-push.
+
+## Today's Workout
+
+The first Overview card resolves the actual America/Chicago date to the same calendar day object, independently of the week being browsed. It displays type, main km, effort/pace/HR reference, estimated all-in running duration, additional preparation and strength details, or a clear rest message. Tap for the full inspector. Dates outside the campaign show no prescription. A minute/focus/visibility check updates changed dates; an open dialog defers refresh until close. Duration estimates exclude walking, untimed mobility and strength; no activity is marked complete automatically.
+
+## Categories, monthly calendar and effort guides
+
+Easy Run (easy/recovery), Long Run (regular/progressive), Speed (steady/fartlek/tempo/intervals/race practice), Strength, Rest (full/active) and Race are presentation categories over the original prescriptions. Combined days show multiple category icons; mileage is counted once. Reports show planned days by category, with overlap identified. No progressive session is invented when none is prescribed.
+
+Overview keeps Today first and replaces the week strip with a Monday-first month grid, defaulting to the Chicago month. Browse previous/next months or return with This month. Cells contain dates, category icons and a subtle manual-completion dot; tap for the original full details. Dates outside the campaign have no fabricated prescription. One existing date-based completion mark applies to the whole combined day. Browsing the month does not change Today or the full Calendar's selected week.
+
+HRR remains unchanged. Effort Guide Pace examples reuse recovery/easy/steady/tempo/short-repetition targets, with RPE and purpose: Z1 7:15–8:00/km or slower; Z2 6:45–7:30 or slower; Z3 6:05–6:20; Z4 5:50–6:05; Z5 short-repetition example 5:25–5:40. These are provisional effort examples, not calibrated HR–pace boundaries. Do not accelerate to reach a zone. Scheduled controlled four-minute intervals retain their separate 5:35–5:50/km or slower prescription.
+
+Strength artwork is original inline SVG: no added files, downloads, animations or dependency. Setup/end frames supplement written technique. Front/back maps distinguish primary/secondary muscle regions; deep structures are listed in text, not individually outlined. Follow written cues and individual comfortable range.
+
+## Release reliability and accessibility
+
+Unknown hash routes safely open Overview. Cross-tab completion/race changes update the open page, defer visual replacement while a dialog is open, then refresh on close. Dialog focus returns to the matching control. Workout empty states include Reset filters. Phone form inputs/selects use 16px text, scrolling tables gain keyboard access, and desktop navigation scrolls on short screens. No runtime package or additional asset is required.
+
+The app offers completion JSON export, not import or full race-data backup. Keep separate private copies of local race/result entries. A denied-storage visit keeps edits in memory with feedback. Local checks cover desktop Chrome and responsive viewport sizes; this does not establish physical iPhone/Safari/touch or assistive-speech behavior. The full development project's historical workflow is absent; this independent branch-root release does not require it.
+
+## Training and race-data maintenance
+
+Most build weeks use one full Monday rest day; four runs Tuesday/Thursday/Saturday/Sunday, Wednesday technique strength (reset after interval days) and optional light Friday core. Take full Friday rest if fatigued; initial recovery, cutbacks, post-race and taper weeks retain extra full rest. Never fill six days just to meet a rule. Race weeks override this. Cinco is 8.04672 km on Saturday May 8; it replaces W27 quality/long running, followed by optional 5 km recovery. W28 starts easy. W31 uses relaxed strides, not a second hard session. Weeks1–2 recover from the November1 15K; structured quality starts with gentle W3/W4 fartlek and builds through tempo and3×3/3×4 to selected Norwegian-style4×4 adaptations in W17/W25. Four-minute reps use5:35–5:50/km or slower, RPE6–7,3-minute easy recovery; no forced near-max HR. Races/cutbacks/recovery/taper govern exceptions. Early running preparation is1+0.5km additional, later1.5+1km; W11 starts main with0.5km easy as well, counted inside main. W5 shifts0.5km Tuesday→Thursday to accommodate preparation; scheduled weekly totals and peak remain unchanged. Easy/long 6:45–7:30/km or slower; tempo 5:50–6:05/km; other effort-led targets remain in training.js.
+
+The new verified PBs are Will Run for Beet 5K (26:41, October 24, 2026) and Run Mag Mile 10K (57:34, September 12, 2026). The original 15.10 km / 1:29:57 result is retained. New 5K/10K distances are nominal, not inferred GPS distances. The 10K's reported 5:40/km differs from 5:45.4/km calculated from 57:34 / 10 km. Riegel HM equivalents are approximately 2:02:45 and 2:07:01; their spread is not a confidence interval or readiness guarantee.
+
+Added race data/primary selection use apex-racing-v1 in this browser with visit-only fallback. New verified 5 or 10 km PB entries recalculate projections. Dated evidence equivalents are calculated now, not fabricated forecasts from the past. Built-in race priorities and dates are in training.js. Changing primary focus updates countdown and target-distance equivalents but does not automatically generate or retime a training plan. Additional events appear as notices on matching campaign dates; training changes need review. No new activity logs or physiology are inferred. Added entries are local and not included in the completion export; retain a private copy. They do not modify repository files and do not sync across devices. Existing date-based completion marks remain untouched when the schedule changes; review earlier marks against the revised schedule.
+
+## Completion marks and limits
+
+The existing apex-progress-v2 browser key is unchanged. Same-origin updates retain marks; a different browser/device or a move from file/localhost to Pages does not transfer them. Export privately first and keep the old browser available. Export is a reference backup: import and sync do not exist, so re-entry is manual. Repository paths on the same origin share storage scope.
+
+This package has no service worker/offline cache and does not upload completion marks. Published use requires fetching static files; direct local use needs no network. Actual GitHub deployment, repository permissions, CDN/HTTPS, Safari/physical iPhone, touch and assistive technology behavior require checks in their real environments. Historical QA is retained privately in the source project, not shipped as release claims.
