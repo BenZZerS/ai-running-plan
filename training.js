@@ -170,23 +170,93 @@
     days.forEach((d,j)=>{d.date=dateAt(i*7+j);d.id=d.date;});
     return {week,phase:phase.id,phaseName:phase.short,from:dateAt(i*7),to:dateAt(i*7+6),recovery:r[5],qualityReason,focus:phase.note+' '+qualityReason,days};
   });
-  function sessionStats(d){
-    if(!d.km)return {mainMinutes:0,allInMinutes:0};
-    const fast=d.qualityKm||0;
-    const easyPace=d.type==='recovery'?avg(targets.recovery.pace):avg(targets.easy.pace);
-    const workPace=d.strides?300:avg(d.pace||(targets[d.target]||targets.easy).pace);
-    const seconds=(d.km-fast)*easyPace+fast*workPace;
-    const extraSeconds=((d.warmupKm||0)+(d.cooldownKm||0))*avg(targets.easy.pace);
-    return {mainMinutes:Math.round(seconds/60),allInMinutes:Math.round((seconds+extraSeconds)/60),seconds,extraSeconds};
+  // Scenario arithmetic is a coaching illustration, not a fitted physiological response model.
+  function paceScenario(weekNumber,{history=athlete.history,asOf=chicagoDate()}={}){
+    const perf=performance(history.filter(r=>validResult(r)&&r.date<=asOf));
+    const anchor=validDate(asOf)?currentWeek(asOf):null;
+    const goal=races.primary.cutoffSeconds;
+    // Midpoint of the PB equivalents is context, never a new race result.
+    // Cap by the faster-PB goal gap and a 3% coaching guardrail, not a safety threshold.
+    const midpoint=perf.low==null?goal:(perf.low+perf.high)/2;
+    const gap=Math.max(0,1-goal/midpoint);
+    const fastGap=perf.low?Math.max(0,1-goal/perf.low):0;
+    const ceiling=Math.min(.03,gap,fastGap);
+    const eligible=w=>anchor!=null&&w.week>=anchor&&w.week<=28&&w.week>2&&!w.recovery&&w.week!==28&&!w.days.some(d=>d.type==='race');
+    const dose=w=>w.days.reduce((n,d)=>n+(d.km+(d.warmupKm||0)+(d.cooldownKm||0))*avg(targets.easy.pace)/60,0);
+    const pool=plan.filter(eligible),total=pool.reduce((n,w)=>n+dose(w),0);
+    const prior=pool.filter(w=>w.week<weekNumber).reduce((n,w)=>n+dose(w),0);
+    const fraction=total?Math.min(1,prior/total):0;
+    const smooth=fraction*fraction*(3-2*fraction);
+    return {week:weekNumber,anchor,progress:fraction,improvement:ceiling*smooth,ceiling,factor:1-ceiling*smooth,baselineHM:midpoint,goalSeconds:goal,label:'Projected training scenario'};
   }
-  function stats(w){
-    const runningDays=w.days.filter(d=>d.km>0);
-    const scheduled=round(runningDays.reduce((n,d)=>n+d.km,0));
-    const extra=round(runningDays.reduce((n,d)=>n+(d.warmupKm||0)+(d.cooldownKm||0),0));
-    const faster=round(runningDays.reduce((n,d)=>n+(d.qualityKm||0),0));
+  function targetFor(d,options={}){
+    const key=d.target||'easy',base=targets[key]||targets.easy;
+    const enabled=options.mode==='projected'&&validDate(d.date)&&d.date>(options.today||options.asOf||chicagoDate())&&options.marks?.[d.id]!==true&&d.type!=='race';
+    const scenario=enabled?paceScenario(currentWeek(d.date),options):null;
+    // Recovery, preparation, strides and conditional goal practice never accelerate with this scenario.
+    const adjustable=['easy','longRun','steady','tempo','interval','aerobicInterval'].includes(key);
+    const projected=!!(scenario&&scenario.improvement>0&&adjustable);
+    return {...base,pace:[...(d.pace||base.pace)].map(p=>projected?Math.round(p*scenario.factor):p),projected,scenario};
+  }
+  function sessionSegments(d,options={}){
+    if(!(d.km>0))return [];
+    const segments=[],primary=targetFor(d,options),easy=targetFor({...d,type:'easy',target:'easy',pace:undefined},options);
+    const preparation={...targets.easy,pace:[...targets.easy.pace],projected:false};
+    const add=(kind,label,{km,minutes,target=easy,extra=false,purposeful=false,estimatedPrescription=false}={})=>{
+      const timed=minutes!=null,seconds=timed?minutes*60:km*avg(target.pace);
+      const distance=timed?seconds/avg(target.pace):km;
+      if(!Number.isFinite(distance)||distance<0)throw Error('Invalid segment: '+d.id+' '+label);
+      const segment={kind,label,basis:timed?'time':'distance',km:distance,seconds,pace:[...target.pace],zone:target.zone,rpe:target.rpe,extra,purposeful,projected:target.projected===true,estimatedPrescription,
+        distanceRange:timed?[seconds/target.pace[1],seconds/target.pace[0]]:[distance,distance]};
+      segments.push(segment);return segment;
+    };
+    const nonRunning=(kind,label)=>segments.push({kind,label,basis:'non-running',km:0,seconds:0,pace:null,zone:null,rpe:'1–2 / 10',extra:true,purposeful:false,projected:false,distanceRange:[0,0]});
+    if(d.warmupKm)add('warmup','Warm-up · easy running',{km:d.warmupKm,target:preparation,extra:true});
+    else nonRunning('warmup','Warm-up · walking / mobility, no running prescribed');
+    const lead=d.leadInKm||0;if(lead)add('easy','Easy lead-in · inside main distance',{km:lead});
+    const mainStart=segments.length;
+    if(d.work){
+      const q=d.work;
+      if(!Number.isInteger(q.reps)||q.reps<1||!(q.workKm>0||q.minutes>0)||!(q.recovery>=0))throw Error('Invalid repetitions: '+d.id);
+      for(let rep=1;rep<=q.reps;rep++){
+        add(q.kind,`${primary.name} · ${rep}/${q.reps}`,{...(q.workKm?{km:q.workKm}:{minutes:q.minutes}),target:primary,purposeful:true});
+        if(rep<q.reps&&q.recovery)add('jog',`Easy jog recovery · ${rep}/${q.reps-1}`,{minutes:q.recovery,target:preparation});
+      }
+    }else if(d.strides){
+      for(let rep=1;rep<=4;rep++){
+        add('stride',`Relaxed stride · ${rep}/4`,{minutes:.25,target:{...targets.interval,pace:[300,300],zone:null,projected:false},purposeful:true,estimatedPrescription:true});
+        if(rep<4)add('jog',`Full easy recovery · ${rep}/3`,{minutes:1.5,target:preparation,estimatedPrescription:true});
+      }
+    }else add(d.type,d.type==='race'?'Race · fixed official distance':primary.name,{km:d.km-lead,target:primary,purposeful:d.type==='race'});
+    const allocated=segments.slice(mainStart).reduce((n,s)=>n+s.km,lead);
+    const remainder=d.km-allocated;
+    if(remainder<-.0000001)throw Error('Work and recovery exceed main distance: '+d.id);
+    if(remainder>1e-9)add('easy','Easy remainder · fills prescribed main distance',{km:remainder});
+    if(d.cooldownKm)add('cooldown','Cool-down · easy running',{km:d.cooldownKm,target:preparation,extra:true});
+    else nonRunning('cooldown','Cool-down · optional walking, no running prescribed');
+    return segments;
+  }
+  function sessionStats(d,options={}){
+    if(!d.km)return {mainMinutes:0,allInMinutes:0,seconds:0,extraSeconds:0,mainKm:0,extraKm:0,allInKm:0,qualityKm:0,segments:[]};
+    const segments=sessionSegments(d,options),main=segments.filter(s=>!s.extra),extra=segments.filter(s=>s.extra);
+    const sum=(items,key)=>items.reduce((n,s)=>n+s[key],0);
+    const seconds=sum(main,'seconds'),extraSeconds=sum(extra,'seconds');
+    return {mainMinutes:Math.round(seconds/60),allInMinutes:Math.round((seconds+extraSeconds)/60),seconds,extraSeconds,mainKm:sum(main,'km'),extraKm:sum(extra,'km'),allInKm:sum(segments,'km'),qualityKm:sum(main.filter(s=>s.purposeful),'km'),segments};
+  }
+  function stats(w,options={}){
+    const runningDays=w.days.filter(d=>d.km>0),sessions=runningDays.map(d=>sessionStats(d,options));
+    const sum=key=>sessions.reduce((n,s)=>n+s[key],0);
+    const scheduled=round(sum('mainKm')),extra=round(sum('extraKm')),faster=round(sum('qualityKm'));
     const raceKm=round(runningDays.filter(d=>d.type==='race').reduce((n,d)=>n+d.km,0));
-    const seconds=runningDays.reduce((n,d)=>n+sessionStats(d).seconds+sessionStats(d).extraSeconds,0);
-    return {scheduled,extra,allIn:round(scheduled+extra),faster,raceKm,trainingOnly:round(scheduled-raceKm),runs:runningDays.length,strength:w.days.filter(d=>d.strength).length,longest:Math.max(...runningDays.map(d=>d.km)),minutes:Math.round(seconds/60),easyPct:scheduled?Math.round((scheduled-faster)/scheduled*100):0};
+    return {scheduled,extra,allIn:round(scheduled+extra),faster,raceKm,trainingOnly:round(scheduled-raceKm),runs:runningDays.length,strength:w.days.filter(d=>d.strength).length,longest:Math.max(...runningDays.map(d=>d.km)),minutes:Math.round(sessions.reduce((n,s)=>n+s.seconds+s.extraSeconds,0)/60),easyPct:scheduled?Math.round((scheduled-faster)/scheduled*100):0};
+  }
+  function weekProgress(date=chicagoDate(),marks={},options={}){
+    const number=validDate(date)?currentWeek(date):null;if(!number)return null;
+    const w=plan[number-1],total=stats(w,options);
+    // A done mark is not measured mileage or proof that optional preparation was performed.
+    const marked=w.days.filter(d=>d.km>0&&marks[d.id]===true&&d.date<=date);
+    const markedMain=round(marked.reduce((n,d)=>n+d.km,0));
+    return {week:number,from:w.from,to:w.to,plannedMain:total.scheduled,plannedAllIn:total.allIn,extra:total.extra,markedMain,markedRuns:marked.length,runs:total.runs,percent:total.scheduled?Math.min(100,Math.round(100*markedMain/total.scheduled)):0};
   }
   function chicagoDate(now=new Date()) {
     const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
@@ -250,18 +320,19 @@
     while(cells.length%7)cells.push(null);
     return cells;
   }
-  function zoneEffortGuides(){
+  function zoneEffortGuides(options={}){
+    const guideDate=options.date||dateAt(((options.week||currentWeek(options.asOf||chicagoDate())||1)-1)*7+6);
     return [
       {name:'Recovery',target:'recovery',effort:'RPE 1–2 · very gentle',purpose:'Recovery jogs; walking or rest if jogging is not restorative.',suffix:'or slower'},
       {name:'Aerobic base',target:'easy',effort:'RPE 2–3 · full sentences',purpose:'Easy runs and most long running; build repeatable aerobic volume.',suffix:'or slower'},
       {name:'Controlled steady',target:'steady',effort:'RPE 4–5 · controlled conversation',purpose:'Modest steady blocks; purposeful without racing.',suffix:''},
       {name:'Controlled tempo',target:'tempo',effort:'RPE 6 · short phrases',purpose:'Controlled tempo blocks with easy recovery between.',suffix:''},
       {name:'Brief faster work',target:'interval',effort:'RPE 7 · repeatable short reps',purpose:'Short-rep pace example only. HR lags; do not accelerate to enter Z5.',suffix:''}
-    ].map((guide,i)=>({...guide,zone:i+1,pace:[...targets[guide.target].pace]}));
+    ].map((guide,i)=>({...guide,zone:i+1,pace:targetFor({date:guideDate,id:guideDate,type:guide.target,target:guide.target},options).pace}));
   }
 
   const workoutLabels=d=>[...new Set(workoutKinds(d).map(k=>k.category))].map(key=>({key,text:categories.find(c=>c.id===key).name}));
-  const api={categories,workoutKinds,categoryDays,validMonth,shiftMonth,monthGrid,zoneEffortGuides,workoutOn,parseDuration,validDate,validRace,validResult,personalBest,performance,countdown,workoutLabels,raceCalendar,athlete,races,sources,phases,targets,plan,strength,zones,stats,sessionStats,dateAt,chicagoDate,currentWeek,predict,round};
+  const api={paceScenario,targetFor,sessionSegments,weekProgress,categories,workoutKinds,categoryDays,validMonth,shiftMonth,monthGrid,zoneEffortGuides,workoutOn,parseDuration,validDate,validRace,validResult,personalBest,performance,countdown,workoutLabels,raceCalendar,athlete,races,sources,phases,targets,plan,strength,zones,stats,sessionStats,dateAt,chicagoDate,currentWeek,predict,round};
   root.APEX=api;
   if(typeof module!=='undefined') module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
